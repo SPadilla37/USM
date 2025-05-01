@@ -231,6 +231,15 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     username: null
   };
   
+  // Mostrar el diálogo de autenticación inmediatamente al cargar la página
+  document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar el diálogo de autenticación por defecto cuando carga la página
+    document.getElementById('auth-container').style.display = 'flex';
+    
+    // Comprobar sesión después de mostrar el diálogo
+    checkSession();
+  });
+  
   // Función para mostrar/ocultar paneles de autenticación
   function showTab(tab) {
     if (tab === 'login') {
@@ -254,6 +263,8 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   // Función para ocultar el diálogo de autenticación
   function hideAuthDialog() {
     document.getElementById('auth-container').style.display = 'none';
+    // Mostrar completamente el mapa cuando el usuario se autentica
+    document.getElementById('map').style.opacity = '1';
   }
   
   // Iniciar sesión
@@ -366,15 +377,17 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
         authState.user_id = data.user_id;
         authState.username = data.username;
         updateAuthUI();
+        hideAuthDialog(); // Ocultar el diálogo solo si el usuario está autenticado
+        // Activar geolocalización si el usuario está autenticado
+        geolocateControl.trigger();
       } else {
-        // Mostrar diálogo de autenticación automáticamente si no hay sesión
-        showAuthDialog();
+        // Si no está autenticado, actualizar la UI pero mantener el diálogo abierto
+        updateAuthUI();
       }
     })
     .catch(error => {
       console.error('Error al comprobar sesión:', error);
-      // En caso de error también mostrar el diálogo
-      showAuthDialog();
+      // No hacer nada en caso de error, mantener el diálogo abierto
     });
   }
   
@@ -429,14 +442,12 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
 
   // Activar automáticamente la geolocalización al cargar el mapa
   map.on('load', () => {
-    // Comprobar sesión al cargar la página
-    checkSession();
-    
-    // Solo activar geolocalización cuando el usuario esté autenticado
-    if (authState.authenticated) {
-      geolocateControl.trigger();
-    }
+    // Ya no activamos geolocalización aquí, sino después de autenticarse
+    // La comprobación de sesión ya se hace en DOMContentLoaded
   });
+
+  // Ocultar el mapa inicialmente hasta que el usuario se autentique
+  document.getElementById('map').style.opacity = '0.3';
 
   // Actualizar el panel de información cuando se obtiene la ubicación
   geolocateControl.on('geolocate', function(e) {
