@@ -172,6 +172,8 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
 <!-- Contenedor para autenticación -->
 <div id="auth-container" class="auth-container" style="display:none;">
   <div class="auth-card">
+    <h3 style="text-align: center; margin-top: 0; color: #3498db;">Bienvenido al Sistema de Localización</h3>
+    <p style="text-align: center; margin-bottom: 20px;">Por favor inicia sesión o regístrate para continuar</p>
     <div class="auth-tabs">
       <div class="auth-tab active" id="login-tab" onclick="showTab('login')">Iniciar Sesión</div>
       <div class="auth-tab" id="register-tab" onclick="showTab('register')">Registrarse</div>
@@ -280,6 +282,8 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
         authState.username = data.username;
         updateAuthUI();
         hideAuthDialog();
+        // Activar geolocalización después de iniciar sesión
+        geolocateControl.trigger();
       }
     })
     .catch(error => {
@@ -321,6 +325,8 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
         authState.username = data.username;
         updateAuthUI();
         hideAuthDialog();
+        // Activar geolocalización después de registrarse
+        geolocateControl.trigger();
       }
     })
     .catch(error => {
@@ -359,11 +365,16 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
       if (data.authenticated) {
         authState.user_id = data.user_id;
         authState.username = data.username;
+        updateAuthUI();
+      } else {
+        // Mostrar diálogo de autenticación automáticamente si no hay sesión
+        showAuthDialog();
       }
-      updateAuthUI();
     })
     .catch(error => {
       console.error('Error al comprobar sesión:', error);
+      // En caso de error también mostrar el diálogo
+      showAuthDialog();
     });
   }
   
@@ -418,9 +429,13 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
 
   // Activar automáticamente la geolocalización al cargar el mapa
   map.on('load', () => {
-    geolocateControl.trigger();
     // Comprobar sesión al cargar la página
     checkSession();
+    
+    // Solo activar geolocalización cuando el usuario esté autenticado
+    if (authState.authenticated) {
+      geolocateControl.trigger();
+    }
   });
 
   // Actualizar el panel de información cuando se obtiene la ubicación
