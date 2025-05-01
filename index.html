@@ -7,7 +7,7 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">  
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>  
 <style>  
-body { margin: 0; padding: 0; }  
+body { margin: 0; padding: 0; font-family: Arial, sans-serif; }  
 #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 .info-panel {
   position: absolute;
@@ -52,12 +52,110 @@ body { margin: 0; padding: 0; }
   color: #333;
   text-align: center;
 }
+.auth-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+.auth-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 350px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+.auth-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #eee;
+}
+.auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.auth-tab.active {
+  color: #3498db;
+  border-bottom: 2px solid #3498db;
+}
+.auth-form {
+  margin-top: 20px;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+.auth-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+}
+.auth-button:hover {
+  background-color: #2874a6;
+}
+.error-message {
+  color: #e74c3c;
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+.profile-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.profile-info {
+  flex: 1;
+}
+.logout-button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.logout-button:hover {
+  background: #c0392b;
+}
 </style>  
 </head>  
 <body>  
 <div id="map"></div>
 <button class="toggle-button" onclick="toggleInfoPanel()">☰</button>
+
+<!-- Panel de información principal -->
 <div id="info-panel" class="info-panel">
+  <div id="profile-section" class="profile-section">
+    <!-- Contenido dinámico: información de perfil o botón de inicio de sesión -->
+  </div>
   <div class="welcome-message" id="welcome-message">
     Prueba de funcionamiento de localización en tiempo real
   </div>
@@ -71,9 +169,222 @@ body { margin: 0; padding: 0; }
   <p id="search-result"></p>
 </div>
 
+<!-- Contenedor para autenticación -->
+<div id="auth-container" class="auth-container" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="login-tab" onclick="showTab('login')">Iniciar Sesión</div>
+      <div class="auth-tab" id="register-tab" onclick="showTab('register')">Registrarse</div>
+    </div>
+    
+    <!-- Formulario de inicio de sesión -->
+    <div id="login-form" class="auth-form">
+      <div class="form-group">
+        <label for="login-username">Nombre de usuario</label>
+        <input type="text" id="login-username" placeholder="Nombre de usuario">
+      </div>
+      <div class="form-group">
+        <label for="login-password">Contraseña</label>
+        <input type="password" id="login-password" placeholder="Contraseña">
+      </div>
+      <button class="auth-button" onclick="loginUser()">Iniciar Sesión</button>
+      <p id="login-error" class="error-message"></p>
+    </div>
+    
+    <!-- Formulario de registro -->
+    <div id="register-form" class="auth-form" style="display:none;">
+      <div class="form-group">
+        <label for="register-username">Nombre de usuario</label>
+        <input type="text" id="register-username" placeholder="Nombre de usuario">
+      </div>
+      <div class="form-group">
+        <label for="register-email">Correo electrónico</label>
+        <input type="email" id="register-email" placeholder="Correo electrónico">
+      </div>
+      <div class="form-group">
+        <label for="register-password">Contraseña</label>
+        <input type="password" id="register-password" placeholder="Contraseña">
+      </div>
+      <div class="form-group">
+        <label for="register-confirm-password">Confirmar contraseña</label>
+        <input type="password" id="register-confirm-password" placeholder="Confirmar contraseña">
+      </div>
+      <button class="auth-button" onclick="registerUser()">Registrarse</button>
+      <p id="register-error" class="error-message"></p>
+    </div>
+  </div>
+</div>
+
 <script>  
   // Añade tu token de acceso de Mapbox
   mapboxgl.accessToken = 'pk.eyJ1IjoiNG5nM2wiLCJhIjoiY205cTJtN284MWI4dDJqb2J0cWRjZWk2dSJ9.Bk-OJNIYS060ah6qOH3BXw';
+  
+  // URL base del servidor
+  const API_BASE_URL = 'https://proyecto-usm.onrender.com';
+  
+  // Estado de autenticación
+  let authState = {
+    authenticated: false,
+    user_id: null,
+    username: null
+  };
+  
+  // Función para mostrar/ocultar paneles de autenticación
+  function showTab(tab) {
+    if (tab === 'login') {
+      document.getElementById('login-tab').classList.add('active');
+      document.getElementById('register-tab').classList.remove('active');
+      document.getElementById('login-form').style.display = 'block';
+      document.getElementById('register-form').style.display = 'none';
+    } else {
+      document.getElementById('login-tab').classList.remove('active');
+      document.getElementById('register-tab').classList.add('active');
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('register-form').style.display = 'block';
+    }
+  }
+  
+  // Función para mostrar el diálogo de autenticación
+  function showAuthDialog() {
+    document.getElementById('auth-container').style.display = 'flex';
+  }
+  
+  // Función para ocultar el diálogo de autenticación
+  function hideAuthDialog() {
+    document.getElementById('auth-container').style.display = 'none';
+  }
+  
+  // Iniciar sesión
+  function loginUser() {
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+    
+    if (!username || !password) {
+      document.getElementById('login-error').textContent = 'Por favor, completa todos los campos';
+      return;
+    }
+    
+    fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        document.getElementById('login-error').textContent = data.error;
+      } else {
+        authState.authenticated = true;
+        authState.user_id = data.user_id;
+        authState.username = data.username;
+        updateAuthUI();
+        hideAuthDialog();
+      }
+    })
+    .catch(error => {
+      document.getElementById('login-error').textContent = 'Error al conectar con el servidor';
+      console.error('Error:', error);
+    });
+  }
+  
+  // Registrar usuario
+  function registerUser() {
+    const username = document.getElementById('register-username').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
+    
+    if (!username || !email || !password || !confirmPassword) {
+      document.getElementById('register-error').textContent = 'Por favor, completa todos los campos';
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      document.getElementById('register-error').textContent = 'Las contraseñas no coinciden';
+      return;
+    }
+    
+    fetch(`${API_BASE_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password }),
+      credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        document.getElementById('register-error').textContent = data.error;
+      } else {
+        authState.authenticated = true;
+        authState.user_id = data.user_id;
+        authState.username = data.username;
+        updateAuthUI();
+        hideAuthDialog();
+      }
+    })
+    .catch(error => {
+      document.getElementById('register-error').textContent = 'Error al conectar con el servidor';
+      console.error('Error:', error);
+    });
+  }
+  
+  // Cerrar sesión
+  function logoutUser() {
+    fetch(`${API_BASE_URL}/logout`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+      authState.authenticated = false;
+      authState.user_id = null;
+      authState.username = null;
+      updateAuthUI();
+    })
+    .catch(error => {
+      console.error('Error al cerrar sesión:', error);
+    });
+  }
+  
+  // Comprobar estado de sesión
+  function checkSession() {
+    fetch(`${API_BASE_URL}/check-session`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+      authState.authenticated = data.authenticated;
+      if (data.authenticated) {
+        authState.user_id = data.user_id;
+        authState.username = data.username;
+      }
+      updateAuthUI();
+    })
+    .catch(error => {
+      console.error('Error al comprobar sesión:', error);
+    });
+  }
+  
+  // Actualizar UI basado en estado de autenticación
+  function updateAuthUI() {
+    const profileSection = document.getElementById('profile-section');
+    
+    if (authState.authenticated) {
+      profileSection.innerHTML = `
+        <div class="profile-info">
+          <strong>Usuario:</strong> ${authState.username}<br>
+          <strong>ID:</strong> ${authState.user_id}
+        </div>
+        <button class="logout-button" onclick="logoutUser()">Cerrar sesión</button>
+      `;
+    } else {
+      profileSection.innerHTML = `
+        <button class="auth-button" onclick="showAuthDialog()">Iniciar sesión / Registrarse</button>
+      `;
+    }
+  }
   
   const map = new mapboxgl.Map({  
     container: 'map',
@@ -94,16 +405,6 @@ body { margin: 0; padding: 0; }
   
   map.addControl(geolocateControl);
 
-  // Generar una ID única para el usuario
-  const userId = localStorage.getItem('userId') || `user-${Date.now()}`;
-  localStorage.setItem('userId', userId); // Guardar la ID en el almacenamiento local
-
-  // Mostrar un mensaje de bienvenida al cargar la página
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('welcome-message').innerHTML = 
-      `Prueba de funcionamiento de localización en tiempo real`;
-  });
-
   // Función para alternar la visibilidad del panel de información
   function toggleInfoPanel() {
     const infoPanel = document.getElementById('info-panel');
@@ -118,6 +419,8 @@ body { margin: 0; padding: 0; }
   // Activar automáticamente la geolocalización al cargar el mapa
   map.on('load', () => {
     geolocateControl.trigger();
+    // Comprobar sesión al cargar la página
+    checkSession();
   });
 
   // Actualizar el panel de información cuando se obtiene la ubicación
@@ -140,21 +443,22 @@ body { margin: 0; padding: 0; }
       .then(response => response.json())
       .then(data => {
         const address = data.features[0]?.place_name || 'Dirección no disponible';
+        const userId = authState.authenticated ? authState.user_id : 'anónimo';
         document.getElementById('location-info').innerHTML = 
-          `<strong>Tu ID:</strong> ${userId}<br>` +
           `<strong>Dirección:</strong> ${address}`;
       })
       .catch(err => console.error('Error al obtener la dirección:', err));
 
     // Actualizar la ubicación en el servidor
-    fetch('https://proyecto-usm.onrender.com/update-location', {
+    fetch(`${API_BASE_URL}/update-location`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId, // Usar la ID generada
+        userId: authState.authenticated ? authState.user_id : 'anónimo',
         latitude,
         longitude
-      })
+      }),
+      credentials: 'include'
     }).then(response => response.json())
       .then(data => console.log(data))
       .catch(err => console.error('Error al actualizar la ubicación:', err));
@@ -175,7 +479,9 @@ body { margin: 0; padding: 0; }
 
     // Iniciar un intervalo para actualizar la ubicación cada 5 segundos
     trackingInterval = setInterval(() => {
-      fetch(`https://proyecto-usm.onrender.com/get-location/${searchUserId}`)
+      fetch(`${API_BASE_URL}/get-location/${searchUserId}`, {
+        credentials: 'include'
+      })
         .then(response => {
           if (!response.ok) {
             throw new Error('Usuario no encontrado');
