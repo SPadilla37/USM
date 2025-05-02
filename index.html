@@ -224,13 +224,33 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   // URL base del servidor
   const API_BASE_URL = 'https://usm-839u.onrender.com';
   
-  // Opciones para las solicitudes fetch
+  // Opciones para las solicitudes fetch (sin incluir token automáticamente)
   const fetchOptions = {
-    credentials: 'include',  // Incluir cookies en todas las solicitudes
     headers: { 
       'Content-Type': 'application/json'
     }
   };
+  
+  // Función para obtener las opciones de fetch con el token de autorización
+  function getAuthFetchOptions(method = 'GET', body = null) {
+    const token = localStorage.getItem('authToken');
+    const options = {
+      method: method,
+      headers: { 
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    if (token) {
+      options.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+    
+    return options;
+  }
   
   // Estado de autenticación
   let authState = {
@@ -241,11 +261,16 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   
   // Mostrar el diálogo de autenticación inmediatamente al cargar la página
   document.addEventListener('DOMContentLoaded', function() {
-    // Mostrar el diálogo de autenticación por defecto
-    document.getElementById('auth-container').style.display = 'flex';
+    // Comprobar si existe un token guardado en localStorage
+    const token = localStorage.getItem('authToken');
     
-    // Comprobar sesión después de mostrar el diálogo
-    checkSession();
+    if (token) {
+      // Si hay un token, verificar si es válido
+      checkSession();
+    } else {
+      // Si no hay token, mostrar el diálogo de autenticación
+      document.getElementById('auth-container').style.display = 'flex';
+    }
   });
   
   // Función para mostrar/ocultar paneles de autenticación
@@ -287,7 +312,7 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     
     fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
-      ...fetchOptions,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     })
     .then(response => response.json())
@@ -295,11 +320,17 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
       if (data.error) {
         document.getElementById('login-error').textContent = data.error;
       } else {
+        // Guardar el token en localStorage
+        localStorage.setItem('authToken', data.token);
+        
+        // Actualizar el estado de autenticación
         authState.authenticated = true;
         authState.user_id = data.user_id;
         authState.username = data.username;
+        
         updateAuthUI();
         hideAuthDialog();
+        
         // Activar geolocalización después de iniciar sesión
         geolocateControl.trigger();
       }
@@ -329,7 +360,7 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     
     fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
-      ...fetchOptions,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, password })
     })
     .then(response => response.json())
@@ -337,11 +368,17 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
       if (data.error) {
         document.getElementById('register-error').textContent = data.error;
       } else {
+        // Guardar el token en localStorage
+        localStorage.setItem('authToken', data.token);
+        
+        // Actualizar el estado de autenticación
         authState.authenticated = true;
         authState.user_id = data.user_id;
         authState.username = data.username;
+        
         updateAuthUI();
         hideAuthDialog();
+        
         // Activar geolocalización después de registrarse
         geolocateControl.trigger();
       }
@@ -354,46 +391,55 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   
   // Cerrar sesión
   function logoutUser() {
-    fetch(`${API_BASE_URL}/logout`, {
-      method: 'POST',
-      ...fetchOptions
-    })
-    .then(response => response.json())
-    .then(data => {
-      authState.authenticated = false;
-      authState.user_id = null;
-      authState.username = null;
-      updateAuthUI();
-    })
-    .catch(error => {
-      console.error('Error al cerrar sesión:', error);
-    });
+    // Eliminar el token del localStorage
+    localStorage.removeItem('authToken');
+    
+    // Actualizar el estado de autenticación
+    authState.authenticated = false;
+    authState.user_id = null;
+    authState.username = null;
+    
+    // Actualizar la UI
+    updateAuthUI();
+    
+    // Mostrar el diálogo de autenticación
+    showAuthDialog();
   }
   
   // Comprobar estado de sesión
   function checkSession() {
-    fetch(`${API_BASE_URL}/check-session`, {
-      method: 'GET',
-      ...fetchOptions
-    })
+    const options = getAuthFetchOptions('GET');
+    
+    fetch(`${API_BASE_URL}/check-session`, options)
     .then(response => response.json())
     .then(data => {
       authState.authenticated = data.authenticated;
+      
       if (data.authenticated) {
+        // Si está autenticado, actualizar el estado
         authState.user_id = data.user_id;
         authState.username = data.username;
+        
+        // Actualizar la UI y ocultar el diálogo de autenticación
         updateAuthUI();
-        hideAuthDialog(); // Ocultar el diálogo solo si el usuario está autenticado
-        // Activar geolocalización si el usuario está autenticado
+        hideAuthDialog();
+        
+        // Activar geolocalización
         geolocateControl.trigger();
       } else {
-        // Si no está autenticado, actualizar la UI pero mantener el diálogo abierto
+        // Si el token no es válido, eliminar del localStorage
+        localStorage.removeItem('authToken');
+        
+        // Actualizar la UI y mostrar el diálogo de autenticación
         updateAuthUI();
+        showAuthDialog();
       }
     })
     .catch(error => {
       console.error('Error al comprobar sesión:', error);
-      // No hacer nada en caso de error, mantener el diálogo abierto
+      
+      // En caso de error, mostrar el diálogo de autenticación
+      showAuthDialog();
     });
   }
   
@@ -481,21 +527,22 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
       })
       .catch(err => console.error('Error al obtener la dirección:', err));
 
-    // Actualizar la ubicación en el servidor
-    fetch(`${API_BASE_URL}/update-location`, {
-      method: 'POST',
-      ...fetchOptions,
-      body: JSON.stringify({
-        userId: authState.authenticated ? authState.user_id : 'anónimo',
+    // Actualizar la ubicación en el servidor usando token
+    if (authState.authenticated) {
+      const options = getAuthFetchOptions('POST', {
+        userId: authState.user_id,
         latitude,
         longitude
-      })
-    }).then(response => response.json())
-      .then(data => console.log(data))
-      .catch(err => console.error('Error al actualizar la ubicación:', err));
+      });
+      
+      fetch(`${API_BASE_URL}/update-location`, options)
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(err => console.error('Error al actualizar la ubicación:', err));
+    }
   });
 
-  // Función para iniciar el seguimiento en tiempo real
+  // Función para iniciar el seguimiento en tiempo real - usando token de autorización
   function startRealTimeTracking() {
     const searchUserId = document.getElementById('search-user-id').value;
     if (!searchUserId) {
@@ -510,9 +557,9 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
 
     // Iniciar un intervalo para actualizar la ubicación cada 5 segundos
     trackingInterval = setInterval(() => {
-      fetch(`${API_BASE_URL}/get-location/${searchUserId}`, {
-        ...fetchOptions
-      })
+      const options = getAuthFetchOptions('GET');
+      
+      fetch(`${API_BASE_URL}/get-location/${searchUserId}`, options)
         .then(response => {
           if (!response.ok) {
             throw new Error('Usuario no encontrado');

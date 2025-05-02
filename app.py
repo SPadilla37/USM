@@ -6,17 +6,17 @@ import secrets
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import datetime
+import jwt
 
 app = Flask(__name__)
 
-# Configuración CORS simplificada
+# Configuración CORS
 CORS(app, supports_credentials=True)
 
-app.secret_key = secrets.token_hex(16)  # Clave secreta para las sesiones
-
-# Configuración para que las sesiones sean permanentes
-app.config['SESSION_PERMANENT'] = True
-app.permanent_session_lifetime = datetime.timedelta(days=30)  # La sesión durará 30 días
+# Clave secreta para JWT
+JWT_SECRET_KEY = secrets.token_hex(32)
+# Duración del token (30 días en segundos)
+JWT_EXPIRATION = 30 * 24 * 60 * 60
 
 # Configuración de MongoDB Atlas
 # IMPORTANTE: Usa una contraseña que solo tenga letras y números, sin caracteres especiales
@@ -33,6 +33,25 @@ locations_collection = db["locations"]
 # Función auxiliar para hash de contraseñas
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
+
+# Función para generar token JWT
+def generate_token(user_id, username):
+    payload = {
+        'user_id': user_id,
+        'username': username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=JWT_EXPIRATION)
+    }
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm='HS256')
+
+# Función para verificar token JWT
+def verify_token(token):
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
 
 # Función para generar IDs de usuario simples
 def generate_user_id():
@@ -81,14 +100,16 @@ def register():
         result = users_collection.insert_one(user_data)
         user_id = str(numeric_id)  # Usar ID numérico en lugar de ObjectId
         
-        # Hacer que la sesión sea permanente
-        session.permanent = True
+        # Generar token JWT
+        token = generate_token(user_id, username)
         
-        # Iniciar sesión automáticamente tras registro
-        session['user_id'] = user_id
-        session['username'] = username
-        
-        return jsonify({'success': True, 'message': 'Usuario registrado correctamente', 'user_id': user_id, 'username': username})
+        return jsonify({
+            'success': True,
+            'message': 'Usuario registrado correctamente',
+            'user_id': user_id,
+            'username': username,
+            'token': token
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -113,33 +134,39 @@ def login():
         })
         
         if user:
-            # Hacer que la sesión sea permanente
-            session.permanent = True
-            
-            # Guardar información del usuario en la sesión
             user_id = str(user.get("numeric_id", user["_id"]))  # Usar numeric_id si existe
-            session['user_id'] = user_id
-            session['username'] = user["username"]
-            return jsonify({'success': True, 'user_id': user_id, 'username': user["username"]})
+            
+            # Generar token JWT
+            token = generate_token(user_id, user["username"])
+            
+            return jsonify({
+                'success': True,
+                'user_id': user_id,
+                'username': user["username"],
+                'token': token
+            })
         else:
             return jsonify({'error': 'Credenciales inválidas'}), 401
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Ruta para cerrar sesión
-@app.route('/logout', methods=['POST'])
-def logout():
-    session.clear()
-    return jsonify({'success': True, 'message': 'Sesión cerrada correctamente'})
-
 # Ruta para verificar estado de sesión
 @app.route('/check-session', methods=['GET'])
 def check_session():
-    if 'user_id' in session:
+    # Obtener token del header de autorización
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({'authenticated': False})
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if payload:
         return jsonify({
             'authenticated': True,
-            'user_id': session['user_id'],
-            'username': session['username']
+            'user_id': payload['user_id'],
+            'username': payload['username']
         })
     return jsonify({'authenticated': False})
 
