@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
-from flask_session import Session  # Importar Flask-Session
 import os
 import hashlib
 import secrets
@@ -10,25 +9,14 @@ import datetime
 
 app = Flask(__name__)
 
-# Configuración mejorada de CORS para garantizar que las cookies se envíen correctamente
-CORS(app, 
-     supports_credentials=True,
-     origins=["https://usm-839u.onrender.com", "http://localhost:5000", "*"],
-     allow_headers=["Content-Type", "Authorization", "Accept"],
-     expose_headers=["Content-Type", "Authorization", "Accept"],
-     max_age=600)
+# Configuración CORS simplificada
+CORS(app, supports_credentials=True)
 
 app.secret_key = secrets.token_hex(16)  # Clave secreta para las sesiones
 
 # Configuración para que las sesiones sean permanentes
 app.config['SESSION_PERMANENT'] = True
-app.config['SESSION_TYPE'] = 'filesystem'  # Guardar sesiones en el sistema de archivos
-app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=30)  # La sesión durará 30 días
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Permitir cookies de sitios cruzados
-app.config['SESSION_COOKIE_SECURE'] = True  # Solo enviar cookies por HTTPS
-
-# Inicializar Flask-Session
-Session(app)
+app.permanent_session_lifetime = datetime.timedelta(days=30)  # La sesión durará 30 días
 
 # Configuración de MongoDB Atlas
 # IMPORTANTE: Usa una contraseña que solo tenga letras y números, sin caracteres especiales
