@@ -11,10 +11,8 @@ CORS(app, supports_credentials=True)
 app.secret_key = secrets.token_hex(16)  # Clave secreta para las sesiones
 
 # Configuración de MongoDB Atlas
-# IMPORTANTE: DEBES reemplazar <db_password> con tu contraseña real de MongoDB Atlas
-# Ejemplo: Si tu contraseña es "abc123", la cadena debería quedar como:
-# mongodb+srv://padilla31661983:abc123@usm.qh90qid.mongodb.net/?retryWrites=true&w=majority&appName=USM
-MONGODB_URI = "mongodb+srv://padilla31661983:<db_password>@usm.qh90qid.mongodb.net/?retryWrites=true&w=majority&appName=USM"
+# IMPORTANTE: La contraseña no debe tener los símbolos < y >
+MONGODB_URI = "mongodb+srv://padilla31661983:Pm181920.@usm.qh90qid.mongodb.net/?retryWrites=true&w=majority&appName=USM"
 # Nombre de la base de datos
 DB_NAME = "usm_app_db"
 
