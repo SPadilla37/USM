@@ -1,37 +1,28 @@
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
-import sqlite3
 import os
 import hashlib
 import secrets
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = secrets.token_hex(16)  # Clave secreta para las sesiones
 
-# Configuración de la base de datos
-DB_PATH = 'users.db'
+# Configuración de MongoDB Atlas
+# IMPORTANTE: DEBES reemplazar <db_password> con tu contraseña real de MongoDB Atlas
+# Ejemplo: Si tu contraseña es "abc123", la cadena debería quedar como:
+# mongodb+srv://padilla31661983:abc123@usm.qh90qid.mongodb.net/?retryWrites=true&w=majority&appName=USM
+MONGODB_URI = "mongodb+srv://padilla31661983:<db_password>@usm.qh90qid.mongodb.net/?retryWrites=true&w=majority&appName=USM"
+# Nombre de la base de datos
+DB_NAME = "usm_app_db"
 
-# Inicializar la base de datos
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL
-    )
-    ''')
-    conn.commit()
-    conn.close()
-
-# Inicializar la base de datos al inicio
-init_db()
-
-# Almacenamiento temporal de ubicaciones (en memoria)
-user_locations = {}
+# Conectar a MongoDB
+client = MongoClient(MONGODB_URI)
+db = client[DB_NAME]
+users_collection = db["users"]
+locations_collection = db["locations"]
 
 # Función auxiliar para hash de contraseñas
 def hash_password(password):
@@ -52,21 +43,25 @@ def register():
     hashed_password = hash_password(password)
     
     try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
-                      (username, hashed_password, email))
-        conn.commit()
-        user_id = cursor.lastrowid
-        conn.close()
+        # Verificar si el usuario o email ya existen
+        if users_collection.find_one({"$or": [{"username": username}, {"email": email}]}):
+            return jsonify({'error': 'El nombre de usuario o email ya existe'}), 409
+        
+        # Insertar nuevo usuario
+        user_data = {
+            "username": username,
+            "password": hashed_password,
+            "email": email
+        }
+        
+        result = users_collection.insert_one(user_data)
+        user_id = str(result.inserted_id)
         
         # Iniciar sesión automáticamente tras registro
         session['user_id'] = user_id
         session['username'] = username
         
         return jsonify({'success': True, 'message': 'Usuario registrado correctamente', 'user_id': user_id, 'username': username})
-    except sqlite3.IntegrityError:
-        return jsonify({'error': 'El nombre de usuario o email ya existe'}), 409
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -84,18 +79,18 @@ def login():
     hashed_password = hash_password(password)
     
     try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, username FROM users WHERE username = ? AND password = ?',
-                      (username, hashed_password))
-        user = cursor.fetchone()
-        conn.close()
+        # Buscar usuario por username y password
+        user = users_collection.find_one({
+            "username": username,
+            "password": hashed_password
+        })
         
         if user:
             # Guardar información del usuario en la sesión
-            session['user_id'] = user[0]
-            session['username'] = user[1]
-            return jsonify({'success': True, 'user_id': user[0], 'username': user[1]})
+            user_id = str(user["_id"])
+            session['user_id'] = user_id
+            session['username'] = user["username"]
+            return jsonify({'success': True, 'user_id': user_id, 'username': user["username"]})
         else:
             return jsonify({'error': 'Credenciales inválidas'}), 401
     except Exception as e:
@@ -129,17 +124,55 @@ def update_location():
     if not user_id or latitude is None or longitude is None:
         return jsonify({'error': 'Faltan datos'}), 400
 
-    user_locations[user_id] = {'latitude': latitude, 'longitude': longitude}
-    return jsonify({'message': 'Ubicación actualizada'})
+    try:
+        # Actualizar o crear ubicación
+        location_data = {
+            "user_id": user_id,
+            "location": {
+                "latitude": latitude,
+                "longitude": longitude
+            },
+            "timestamp": __import__('datetime').datetime.now()
+        }
+        
+        # Actualizamos si existe, si no, creamos una nueva entrada
+        locations_collection.update_one(
+            {"user_id": user_id},
+            {"$set": location_data},
+            upsert=True
+        )
+        
+        return jsonify({'message': 'Ubicación actualizada'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Ruta para obtener la ubicación de un usuario por ID
 @app.route('/get-location/<user_id>', methods=['GET'])
 def get_location(user_id):
-    location = user_locations.get(user_id)
-    if not location:
-        return jsonify({'error': 'Usuario no encontrado'}), 404
+    try:
+        location_data = locations_collection.find_one({"user_id": user_id})
+        
+        if not location_data:
+            return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+        # Retornar solo la información de ubicación
+        return jsonify(location_data["location"])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-    return jsonify(location)
+# Ruta para ver los usuarios (para administración)
+@app.route('/admin/users', methods=['GET'])
+def admin_users():
+    try:
+        users = list(users_collection.find({}, {"password": 0}))  # Excluir contraseñas
+        
+        # Convertir ObjectId a string para poder serializar a JSON
+        for user in users:
+            user["_id"] = str(user["_id"])
+            
+        return jsonify(users)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
