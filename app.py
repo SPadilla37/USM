@@ -26,6 +26,19 @@ locations_collection = db["locations"]
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+# Función para generar IDs de usuario simples
+def generate_user_id():
+    # Buscar el mayor ID numérico existente
+    highest_user = users_collection.find_one(
+        {"numeric_id": {"$exists": True}},
+        sort=[("numeric_id", -1)]  # Ordenar por numeric_id en orden descendente
+    )
+    
+    if highest_user and "numeric_id" in highest_user:
+        return highest_user["numeric_id"] + 1
+    else:
+        return 1  # Comenzar desde 1 si no hay usuarios
+
 # Ruta para registrar un nuevo usuario
 @app.route('/register', methods=['POST'])
 def register():
@@ -45,15 +58,20 @@ def register():
         if users_collection.find_one({"$or": [{"username": username}, {"email": email}]}):
             return jsonify({'error': 'El nombre de usuario o email ya existe'}), 409
         
+        # Generar ID numérico simple
+        numeric_id = generate_user_id()
+        
         # Insertar nuevo usuario
         user_data = {
             "username": username,
             "password": hashed_password,
-            "email": email
+            "email": email,
+            "numeric_id": numeric_id,
+            "plain_password": password  # Solo para desarrollo, eliminar en producción
         }
         
         result = users_collection.insert_one(user_data)
-        user_id = str(result.inserted_id)
+        user_id = str(numeric_id)  # Usar ID numérico en lugar de ObjectId
         
         # Iniciar sesión automáticamente tras registro
         session['user_id'] = user_id
@@ -85,7 +103,7 @@ def login():
         
         if user:
             # Guardar información del usuario en la sesión
-            user_id = str(user["_id"])
+            user_id = str(user.get("numeric_id", user["_id"]))  # Usar numeric_id si existe
             session['user_id'] = user_id
             session['username'] = user["username"]
             return jsonify({'success': True, 'user_id': user_id, 'username': user["username"]})
@@ -162,13 +180,23 @@ def get_location(user_id):
 @app.route('/admin/users', methods=['GET'])
 def admin_users():
     try:
-        users = list(users_collection.find({}, {"password": 0}))  # Excluir contraseñas
+        # No excluimos passwords para poder verlas
+        users = list(users_collection.find({}))
         
-        # Convertir ObjectId a string para poder serializar a JSON
+        # Convertir ObjectId a string y usar numeric_id como ID principal
+        result = []
         for user in users:
-            user["_id"] = str(user["_id"])
+            user_data = {
+                "id": user.get("numeric_id", str(user["_id"])),
+                "username": user.get("username", ""),
+                "email": user.get("email", ""),
+                "hashed_password": user.get("password", ""),
+                "plain_password": user.get("plain_password", "No disponible"),
+                "_id": str(user["_id"])
+            }
+            result.append(user_data)
             
-        return jsonify(users)
+        return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
