@@ -227,8 +227,19 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   // Opciones para las solicitudes fetch
   const fetchOptions = {
     credentials: 'include',  // Incluir cookies en todas las solicitudes
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache'  // Evitar caché
+    }
   };
+  
+  // Verificar si hay cookies almacenadas al cargar la página
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  }
   
   // Estado de autenticación
   let authState = {
@@ -239,11 +250,17 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   
   // Mostrar el diálogo de autenticación inmediatamente al cargar la página
   document.addEventListener('DOMContentLoaded', function() {
-    // Mostrar el diálogo de autenticación por defecto cuando carga la página
-    document.getElementById('auth-container').style.display = 'flex';
+    // Comprobar si hay una cookie de sesión antes de mostrar el diálogo
+    const hasSessionCookie = getCookie('session') || document.cookie.includes('session');
     
-    // Comprobar sesión después de mostrar el diálogo
-    checkSession();
+    if (hasSessionCookie) {
+      // Si hay una cookie de sesión, comprueba la sesión primero
+      checkSession();
+    } else {
+      // Si no hay cookie, muestra el diálogo de autenticación
+      document.getElementById('auth-container').style.display = 'flex';
+      checkSession(); // Comprueba de todos modos, por si acaso
+    }
   });
   
   // Función para mostrar/ocultar paneles de autenticación
