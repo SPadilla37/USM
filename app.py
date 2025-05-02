@@ -5,10 +5,15 @@ import hashlib
 import secrets
 from pymongo import MongoClient
 from bson.objectid import ObjectId
+import datetime
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = secrets.token_hex(16)  # Clave secreta para las sesiones
+
+# Configuración para que las sesiones sean permanentes
+app.config['SESSION_PERMANENT'] = True
+app.permanent_session_lifetime = datetime.timedelta(days=30)  # La sesión durará 30 días
 
 # Configuración de MongoDB Atlas
 # IMPORTANTE: Usa una contraseña que solo tenga letras y números, sin caracteres especiales
@@ -73,6 +78,9 @@ def register():
         result = users_collection.insert_one(user_data)
         user_id = str(numeric_id)  # Usar ID numérico en lugar de ObjectId
         
+        # Hacer que la sesión sea permanente
+        session.permanent = True
+        
         # Iniciar sesión automáticamente tras registro
         session['user_id'] = user_id
         session['username'] = username
@@ -102,6 +110,9 @@ def login():
         })
         
         if user:
+            # Hacer que la sesión sea permanente
+            session.permanent = True
+            
             # Guardar información del usuario en la sesión
             user_id = str(user.get("numeric_id", user["_id"]))  # Usar numeric_id si existe
             session['user_id'] = user_id

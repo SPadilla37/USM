@@ -224,6 +224,12 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   // URL base del servidor
   const API_BASE_URL = 'https://usm-839u.onrender.com';
   
+  // Opciones para las solicitudes fetch
+  const fetchOptions = {
+    credentials: 'include',  // Incluir cookies en todas las solicitudes
+    headers: { 'Content-Type': 'application/json' }
+  };
+  
   // Estado de autenticación
   let authState = {
     authenticated: false,
@@ -279,9 +285,8 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     
     fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-      credentials: 'include'
+      ...fetchOptions,
+      body: JSON.stringify({ username, password })
     })
     .then(response => response.json())
     .then(data => {
@@ -322,9 +327,8 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     
     fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password }),
-      credentials: 'include'
+      ...fetchOptions,
+      body: JSON.stringify({ username, email, password })
     })
     .then(response => response.json())
     .then(data => {
@@ -350,7 +354,7 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   function logoutUser() {
     fetch(`${API_BASE_URL}/logout`, {
       method: 'POST',
-      credentials: 'include'
+      ...fetchOptions
     })
     .then(response => response.json())
     .then(data => {
@@ -368,7 +372,7 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   function checkSession() {
     fetch(`${API_BASE_URL}/check-session`, {
       method: 'GET',
-      credentials: 'include'
+      ...fetchOptions
     })
     .then(response => response.json())
     .then(data => {
@@ -478,13 +482,12 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     // Actualizar la ubicación en el servidor
     fetch(`${API_BASE_URL}/update-location`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      ...fetchOptions,
       body: JSON.stringify({
         userId: authState.authenticated ? authState.user_id : 'anónimo',
         latitude,
         longitude
-      }),
-      credentials: 'include'
+      })
     }).then(response => response.json())
       .then(data => console.log(data))
       .catch(err => console.error('Error al actualizar la ubicación:', err));
@@ -506,7 +509,7 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     // Iniciar un intervalo para actualizar la ubicación cada 5 segundos
     trackingInterval = setInterval(() => {
       fetch(`${API_BASE_URL}/get-location/${searchUserId}`, {
-        credentials: 'include'
+        ...fetchOptions
       })
         .then(response => {
           if (!response.ok) {
