@@ -76,6 +76,13 @@ function registerUser() {
     return;
   }
   
+  // Validar formato de correo electrónico
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    document.getElementById('register-error').textContent = 'Por favor, ingresa un correo electrónico válido';
+    return;
+  }
+  
   if (password !== confirmPassword) {
     document.getElementById('register-error').textContent = 'Las contraseñas no coinciden';
     return;
