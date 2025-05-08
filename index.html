@@ -2,609 +2,96 @@
 <html>  
 <head>  
 <meta charset="utf-8">  
-<title>Ubicación del usuario en tiempo real</title>  
+<title>Transporte USM</title>  
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">  
-<link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">  
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>  
-<style>  
-body { margin: 0; padding: 0; font-family: Arial, sans-serif; }  
-#map { position: absolute; top: 0; bottom: 0; width: 100%; }
-.info-panel {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: white;
-  padding: 10px;
-  border-radius: 4px;
-  z-index: 1;
-  max-width: 300px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease-in-out;
-}
-.info-panel.hidden {
-  transform: translateX(-110%);
-}
-.toggle-button {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px;
-  cursor: pointer;
-  z-index: 2;
-}
-.toggle-button:hover {
-  background: #2874a6;
-}
-.mapboxgl-ctrl-geolocate {
-  background-color: #3498db;
-  color: white;
-}
-.welcome-message {
-  background: #f1f1f1;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #333;
-  text-align: center;
-}
-.auth-container {
-  position: absolute;
+<link href="style.css" rel="stylesheet">
+<style>
+.welcome-screen {
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: #0f4c81; /* Color azul USM */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  color: white;
+  text-align: center;
+}
+
+.welcome-logo-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
-}
-.auth-card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 350px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-.auth-tabs {
-  display: flex;
   margin-bottom: 20px;
-  border-bottom: 2px solid #eee;
 }
-.auth-tab {
-  flex: 1;
-  text-align: center;
-  padding: 10px;
-  cursor: pointer;
+
+.welcome-logo {
+  height: 120px;
+  margin-right: 20px;
+}
+
+.bus-icon {
+  height: 80px;
+}
+
+.welcome-title {
+  font-size: 36px;
   font-weight: bold;
+  margin: 20px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
-.auth-tab.active {
-  color: #3498db;
-  border-bottom: 2px solid #3498db;
-}
-.auth-form {
-  margin-top: 20px;
-}
-.form-group {
-  margin-bottom: 15px;
-}
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-.form-group input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-.auth-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-top: 10px;
-}
-.auth-button:hover {
-  background-color: #2874a6;
-}
-.error-message {
-  color: #e74c3c;
-  margin-top: 10px;
-  font-size: 14px;
-  text-align: center;
-}
-.profile-section {
+
+.welcome-buttons {
   display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
 }
-.profile-info {
-  flex: 1;
-}
-.logout-button {
-  background: #e74c3c;
-  color: white;
+
+.welcome-button {
+  background-color: white;
+  color: #0f4c81;
   border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
-  font-size: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-.logout-button:hover {
-  background: #c0392b;
+
+.welcome-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
-</style>  
+</style>
 </head>  
 <body>  
-<div id="map"></div>
-<button class="toggle-button" onclick="toggleInfoPanel()">☰</button>
-
-<!-- Panel de información principal -->
-<div id="info-panel" class="info-panel">
-  <div id="profile-section" class="profile-section">
-    <!-- Contenido dinámico: información de perfil o botón de inicio de sesión -->
+<!-- Pantalla de bienvenida -->
+<div id="welcome-screen" class="welcome-screen">
+  <div class="welcome-logo-container">
+    <img src="https://www.usm.cl/assets/img/logo-usm.png" alt="Logo USM" class="welcome-logo">
+    <img src="https://cdn-icons-png.flaticon.com/512/3774/3774270.png" alt="Bus Icon" class="bus-icon">
   </div>
-  <div class="welcome-message" id="welcome-message">
-    Prueba de funcionamiento de localización en tiempo real
-  </div>
-  <hr>
-  <h4>Tu ubicación</h4>
-  <p id="location-info"></p>
-  <hr>
-  <h4>Buscar otro usuario</h4>
-  <input type="text" id="search-user-id" placeholder="Introduce la ID del usuario">
-  <button onclick="startRealTimeTracking()">Localizar en tiempo real</button>
-  <p id="search-result"></p>
-</div>
-
-<!-- Contenedor para autenticación -->
-<div id="auth-container" class="auth-container" style="display:none;">
-  <div class="auth-card">
-    <h3 style="text-align: center; margin-top: 0; color: #3498db;">Bienvenido al Sistema de Localización</h3>
-    <p style="text-align: center; margin-bottom: 20px;">Por favor inicia sesión o regístrate para continuar</p>
-    <div class="auth-tabs">
-      <div class="auth-tab active" id="login-tab" onclick="showTab('login')">Iniciar Sesión</div>
-      <div class="auth-tab" id="register-tab" onclick="showTab('register')">Registrarse</div>
-    </div>
-    
-    <!-- Formulario de inicio de sesión -->
-    <div id="login-form" class="auth-form">
-      <div class="form-group">
-        <label for="login-username">Nombre de usuario</label>
-        <input type="text" id="login-username" placeholder="Nombre de usuario">
-      </div>
-      <div class="form-group">
-        <label for="login-password">Contraseña</label>
-        <input type="password" id="login-password" placeholder="Contraseña">
-      </div>
-      <button class="auth-button" onclick="loginUser()">Iniciar Sesión</button>
-      <p id="login-error" class="error-message"></p>
-    </div>
-    
-    <!-- Formulario de registro -->
-    <div id="register-form" class="auth-form" style="display:none;">
-      <div class="form-group">
-        <label for="register-username">Nombre de usuario</label>
-        <input type="text" id="register-username" placeholder="Nombre de usuario">
-      </div>
-      <div class="form-group">
-        <label for="register-email">Correo electrónico</label>
-        <input type="email" id="register-email" placeholder="Correo electrónico">
-      </div>
-      <div class="form-group">
-        <label for="register-password">Contraseña</label>
-        <input type="password" id="register-password" placeholder="Contraseña">
-      </div>
-      <div class="form-group">
-        <label for="register-confirm-password">Confirmar contraseña</label>
-        <input type="password" id="register-confirm-password" placeholder="Confirmar contraseña">
-      </div>
-      <button class="auth-button" onclick="registerUser()">Registrarse</button>
-      <p id="register-error" class="error-message"></p>
-    </div>
+  <h1 class="welcome-title">Transporte USM</h1>
+  <div class="welcome-buttons">
+    <a href="login.html" class="welcome-button">Iniciar Sesión</a>
+    <a href="registro.html" class="welcome-button">Registrarse</a>
   </div>
 </div>
 
-<script>  
-  // Añade tu token de acceso de Mapbox
-  mapboxgl.accessToken = 'pk.eyJ1IjoiNG5nM2wiLCJhIjoiY205cTJtN284MWI4dDJqb2J0cWRjZWk2dSJ9.Bk-OJNIYS060ah6qOH3BXw';
-  
-  // URL base del servidor
-  const API_BASE_URL = 'https://usm-839u.onrender.com';
-  
-  // Opciones para las solicitudes fetch (sin incluir token automáticamente)
-  const fetchOptions = {
-    headers: { 
-      'Content-Type': 'application/json'
-    }
-  };
-  
-  // Función para obtener las opciones de fetch con el token de autorización
-  function getAuthFetchOptions(method = 'GET', body = null) {
-    const token = localStorage.getItem('authToken');
-    const options = {
-      method: method,
-      headers: { 
-        'Content-Type': 'application/json'
-      }
-    };
-    
-    if (token) {
-      options.headers['Authorization'] = `Bearer ${token}`;
-    }
-    
-    if (body) {
-      options.body = JSON.stringify(body);
-    }
-    
-    return options;
-  }
-  
-  // Estado de autenticación
-  let authState = {
-    authenticated: false,
-    user_id: null,
-    username: null
-  };
-  
-  // Mostrar el diálogo de autenticación inmediatamente al cargar la página
+<script>
+  // Verificar si hay sesión activa
   document.addEventListener('DOMContentLoaded', function() {
-    // Comprobar si existe un token guardado en localStorage
-    const token = localStorage.getItem('authToken');
-    
-    if (token) {
-      // Si hay un token, verificar si es válido
-      checkSession();
-    } else {
-      // Si no hay token, mostrar el diálogo de autenticación
-      document.getElementById('auth-container').style.display = 'flex';
+    if (localStorage.getItem('authToken')) {
+      window.location.href = 'mapa.html';
     }
   });
-  
-  // Función para mostrar/ocultar paneles de autenticación
-  function showTab(tab) {
-    if (tab === 'login') {
-      document.getElementById('login-tab').classList.add('active');
-      document.getElementById('register-tab').classList.remove('active');
-      document.getElementById('login-form').style.display = 'block';
-      document.getElementById('register-form').style.display = 'none';
-    } else {
-      document.getElementById('login-tab').classList.remove('active');
-      document.getElementById('register-tab').classList.add('active');
-      document.getElementById('login-form').style.display = 'none';
-      document.getElementById('register-form').style.display = 'block';
-    }
-  }
-  
-  // Función para mostrar el diálogo de autenticación
-  function showAuthDialog() {
-    document.getElementById('auth-container').style.display = 'flex';
-  }
-  
-  // Función para ocultar el diálogo de autenticación
-  function hideAuthDialog() {
-    document.getElementById('auth-container').style.display = 'none';
-    // Mostrar completamente el mapa cuando el usuario se autentica
-    document.getElementById('map').style.opacity = '1';
-  }
-  
-  // Iniciar sesión
-  function loginUser() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-    
-    if (!username || !password) {
-      document.getElementById('login-error').textContent = 'Por favor, completa todos los campos';
-      return;
-    }
-    
-    fetch(`${API_BASE_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        document.getElementById('login-error').textContent = data.error;
-      } else {
-        // Guardar el token en localStorage
-        localStorage.setItem('authToken', data.token);
-        
-        // Actualizar el estado de autenticación
-        authState.authenticated = true;
-        authState.user_id = data.user_id;
-        authState.username = data.username;
-        
-        updateAuthUI();
-        hideAuthDialog();
-        
-        // Activar geolocalización después de iniciar sesión
-        geolocateControl.trigger();
-      }
-    })
-    .catch(error => {
-      document.getElementById('login-error').textContent = 'Error al conectar con el servidor';
-      console.error('Error:', error);
-    });
-  }
-  
-  // Registrar usuario
-  function registerUser() {
-    const username = document.getElementById('register-username').value;
-    const email = document.getElementById('register-email').value;
-    const password = document.getElementById('register-password').value;
-    const confirmPassword = document.getElementById('register-confirm-password').value;
-    
-    if (!username || !email || !password || !confirmPassword) {
-      document.getElementById('register-error').textContent = 'Por favor, completa todos los campos';
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      document.getElementById('register-error').textContent = 'Las contraseñas no coinciden';
-      return;
-    }
-    
-    fetch(`${API_BASE_URL}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        document.getElementById('register-error').textContent = data.error;
-      } else {
-        // Guardar el token en localStorage
-        localStorage.setItem('authToken', data.token);
-        
-        // Actualizar el estado de autenticación
-        authState.authenticated = true;
-        authState.user_id = data.user_id;
-        authState.username = data.username;
-        
-        updateAuthUI();
-        hideAuthDialog();
-        
-        // Activar geolocalización después de registrarse
-        geolocateControl.trigger();
-      }
-    })
-    .catch(error => {
-      document.getElementById('register-error').textContent = 'Error al conectar con el servidor';
-      console.error('Error:', error);
-    });
-  }
-  
-  // Cerrar sesión
-  function logoutUser() {
-    // Eliminar el token del localStorage
-    localStorage.removeItem('authToken');
-    
-    // Actualizar el estado de autenticación
-    authState.authenticated = false;
-    authState.user_id = null;
-    authState.username = null;
-    
-    // Actualizar la UI
-    updateAuthUI();
-    
-    // Mostrar el diálogo de autenticación
-    showAuthDialog();
-  }
-  
-  // Comprobar estado de sesión
-  function checkSession() {
-    const options = getAuthFetchOptions('GET');
-    
-    fetch(`${API_BASE_URL}/check-session`, options)
-    .then(response => response.json())
-    .then(data => {
-      authState.authenticated = data.authenticated;
-      
-      if (data.authenticated) {
-        // Si está autenticado, actualizar el estado
-        authState.user_id = data.user_id;
-        authState.username = data.username;
-        
-        // Actualizar la UI y ocultar el diálogo de autenticación
-        updateAuthUI();
-        hideAuthDialog();
-        
-        // Activar geolocalización
-        geolocateControl.trigger();
-      } else {
-        // Si el token no es válido, eliminar del localStorage
-        localStorage.removeItem('authToken');
-        
-        // Actualizar la UI y mostrar el diálogo de autenticación
-        updateAuthUI();
-        showAuthDialog();
-      }
-    })
-    .catch(error => {
-      console.error('Error al comprobar sesión:', error);
-      
-      // En caso de error, mostrar el diálogo de autenticación
-      showAuthDialog();
-    });
-  }
-  
-  // Actualizar UI basado en estado de autenticación
-  function updateAuthUI() {
-    const profileSection = document.getElementById('profile-section');
-    
-    if (authState.authenticated) {
-      profileSection.innerHTML = `
-        <div class="profile-info">
-          <strong>Usuario:</strong> ${authState.username}<br>
-          <strong>ID:</strong> ${authState.user_id}
-        </div>
-        <button class="logout-button" onclick="logoutUser()">Cerrar sesión</button>
-      `;
-    } else {
-      profileSection.innerHTML = `
-        <button class="auth-button" onclick="showAuthDialog()">Iniciar sesión / Registrarse</button>
-      `;
-    }
-  }
-  
-  const map = new mapboxgl.Map({  
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v12',
-    center: [0, 0], // Coordenadas iniciales (se actualizarán)
-    zoom: 2 // Zoom inicial (se actualizará)
-  });  
-
-  // Añadir control de geolocalización al mapa
-  const geolocateControl = new mapboxgl.GeolocateControl({
-    positionOptions: {
-      enableHighAccuracy: true
-    },
-    trackUserLocation: true,
-    showUserHeading: true,
-    showAccuracyCircle: true
-  });
-  
-  map.addControl(geolocateControl);
-
-  // Función para alternar la visibilidad del panel de información
-  function toggleInfoPanel() {
-    const infoPanel = document.getElementById('info-panel');
-    const isHidden = infoPanel.classList.toggle('hidden');
-    localStorage.setItem('infoPanelHidden', isHidden); // Guardar el estado en localStorage
-  }
-
-  // Variable para almacenar el marcador actual
-  let currentMarker = null;
-  let trackingInterval = null;
-
-  // Activar automáticamente la geolocalización al cargar el mapa
-  map.on('load', () => {
-    // Ya no activamos geolocalización aquí, sino después de autenticarse
-    // La comprobación de sesión ya se hace en DOMContentLoaded
-  });
-
-  // Ocultar el mapa inicialmente hasta que el usuario se autentique
-  document.getElementById('map').style.opacity = '0.3';
-
-  // Actualizar el panel de información cuando se obtiene la ubicación
-  geolocateControl.on('geolocate', function(e) {
-    const longitude = e.coords.longitude;
-    const latitude = e.coords.latitude;
-
-    // Eliminar el marcador actual si existe
-    if (currentMarker) {
-      currentMarker.remove();
-    }
-
-    // Agregar un marcador para la ubicación del usuario principal
-    currentMarker = new mapboxgl.Marker({ color: 'blue' }) // Marcador azul
-      .setLngLat([longitude, latitude])
-      .addTo(map);
-
-    // Obtener la dirección del usuario principal
-    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`)
-      .then(response => response.json())
-      .then(data => {
-        const address = data.features[0]?.place_name || 'Dirección no disponible';
-        const userId = authState.authenticated ? authState.user_id : 'anónimo';
-        document.getElementById('location-info').innerHTML = 
-          `<strong>Dirección:</strong> ${address}`;
-      })
-      .catch(err => console.error('Error al obtener la dirección:', err));
-
-    // Actualizar la ubicación en el servidor usando token
-    if (authState.authenticated) {
-      const options = getAuthFetchOptions('POST', {
-        userId: authState.user_id,
-        latitude,
-        longitude
-      });
-      
-      fetch(`${API_BASE_URL}/update-location`, options)
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(err => console.error('Error al actualizar la ubicación:', err));
-    }
-  });
-
-  // Función para iniciar el seguimiento en tiempo real - usando token de autorización
-  function startRealTimeTracking() {
-    const searchUserId = document.getElementById('search-user-id').value;
-    if (!searchUserId) {
-      document.getElementById('search-result').innerHTML = 'Por favor, introduce una ID válida.';
-      return;
-    }
-
-    // Limpiar cualquier intervalo previo
-    if (trackingInterval) {
-      clearInterval(trackingInterval);
-    }
-
-    // Iniciar un intervalo para actualizar la ubicación cada 5 segundos
-    trackingInterval = setInterval(() => {
-      const options = getAuthFetchOptions('GET');
-      
-      fetch(`${API_BASE_URL}/get-location/${searchUserId}`, options)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Usuario no encontrado');
-          }
-          return response.json();
-        })
-        .then(location => {
-          const { latitude, longitude } = location;
-
-          // Centrar el mapa en la ubicación del usuario
-          map.flyTo({
-            center: [longitude, latitude],
-            zoom: 14
-          });
-
-          // Eliminar el marcador actual si existe
-          if (currentMarker) {
-            currentMarker.remove();
-          }
-
-          // Agregar un nuevo marcador en la ubicación del usuario buscado
-          currentMarker = new mapboxgl.Marker({ color: 'red' }) // Marcador rojo
-            .setLngLat([longitude, latitude])
-            .addTo(map);
-
-          // Obtener la dirección del usuario buscado
-          fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxgl.accessToken}`)
-            .then(response => response.json())
-            .then(data => {
-              const address = data.features[0]?.place_name || 'Dirección no disponible';
-              document.getElementById('search-result').innerHTML = 
-                `<strong>Ubicación del usuario ${searchUserId}:</strong><br>` +
-                `<strong>Dirección:</strong> ${address}<br>` +
-                `Latitud: ${latitude.toFixed(6)}<br>` +
-                `Longitud: ${longitude.toFixed(6)}`;
-            })
-            .catch(err => console.error('Error al obtener la dirección:', err));
-        })
-        .catch(err => {
-          console.error(err);
-          document.getElementById('search-result').innerHTML = 
-            `<strong>Error:</strong> No se pudo localizar al usuario.`;
-        });
-    }, 5000); // Actualizar cada 5 segundos
-  }
-</script>  
+</script>
 </body>  
 </html>

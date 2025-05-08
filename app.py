@@ -1,10 +1,8 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
 import hashlib
 import secrets
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 import datetime
 import jwt
 
@@ -66,7 +64,7 @@ def generate_user_id():
     else:
         return 1  # Comenzar desde 1 si no hay usuarios
 
-# Ruta para registrar un nuevo usuario
+# Rutas API
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
@@ -77,35 +75,29 @@ def register():
     if not username or not password or not email:
         return jsonify({'error': 'Faltan datos obligatorios'}), 400
     
-    # Hash de la contraseña
     hashed_password = hash_password(password)
     
     try:
-        # Verificar si el usuario o email ya existen
         if users_collection.find_one({"$or": [{"username": username}, {"email": email}]}):
             return jsonify({'error': 'El nombre de usuario o email ya existe'}), 409
         
-        # Generar ID numérico simple
         numeric_id = generate_user_id()
         
-        # Insertar nuevo usuario
         user_data = {
             "username": username,
             "password": hashed_password,
             "email": email,
             "numeric_id": numeric_id,
-            "plain_password": password  # Solo para desarrollo, eliminar en producción
+            "plain_password": password  # Solo para desarrollo
         }
         
-        result = users_collection.insert_one(user_data)
-        user_id = str(numeric_id)  # Usar ID numérico en lugar de ObjectId
+        users_collection.insert_one(user_data)
+        user_id = str(numeric_id)
         
-        # Generar token JWT
         token = generate_token(user_id, username)
         
         return jsonify({
             'success': True,
-            'message': 'Usuario registrado correctamente',
             'user_id': user_id,
             'username': username,
             'token': token
@@ -113,7 +105,6 @@ def register():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Ruta para iniciar sesión
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -123,20 +114,17 @@ def login():
     if not username or not password:
         return jsonify({'error': 'Faltan datos obligatorios'}), 400
     
-    # Hash de la contraseña para comparar
     hashed_password = hash_password(password)
     
     try:
-        # Buscar usuario por username y password
         user = users_collection.find_one({
             "username": username,
             "password": hashed_password
         })
         
         if user:
-            user_id = str(user.get("numeric_id", user["_id"]))  # Usar numeric_id si existe
+            user_id = str(user.get("numeric_id", user["_id"]))
             
-            # Generar token JWT
             token = generate_token(user_id, user["username"])
             
             return jsonify({
@@ -150,10 +138,8 @@ def login():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Ruta para verificar estado de sesión
 @app.route('/check-session', methods=['GET'])
 def check_session():
-    # Obtener token del header de autorización
     auth_header = request.headers.get('Authorization')
     
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -170,7 +156,6 @@ def check_session():
         })
     return jsonify({'authenticated': False})
 
-# Ruta para actualizar la ubicación de un usuario
 @app.route('/update-location', methods=['POST'])
 def update_location():
     data = request.json
@@ -182,17 +167,15 @@ def update_location():
         return jsonify({'error': 'Faltan datos'}), 400
 
     try:
-        # Actualizar o crear ubicación
         location_data = {
             "user_id": user_id,
             "location": {
                 "latitude": latitude,
                 "longitude": longitude
             },
-            "timestamp": __import__('datetime').datetime.now()
+            "timestamp": datetime.datetime.now()
         }
         
-        # Actualizamos si existe, si no, creamos una nueva entrada
         locations_collection.update_one(
             {"user_id": user_id},
             {"$set": location_data},
@@ -203,7 +186,6 @@ def update_location():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Ruta para obtener la ubicación de un usuario por ID
 @app.route('/get-location/<user_id>', methods=['GET'])
 def get_location(user_id):
     try:
@@ -212,28 +194,22 @@ def get_location(user_id):
         if not location_data:
             return jsonify({'error': 'Usuario no encontrado'}), 404
         
-        # Retornar solo la información de ubicación
         return jsonify(location_data["location"])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Ruta para ver los usuarios (para administración)
 @app.route('/admin/users', methods=['GET'])
 def admin_users():
     try:
-        # No excluimos passwords para poder verlas
         users = list(users_collection.find({}))
         
-        # Convertir ObjectId a string y usar numeric_id como ID principal
         result = []
         for user in users:
             user_data = {
                 "id": user.get("numeric_id", str(user["_id"])),
                 "username": user.get("username", ""),
                 "email": user.get("email", ""),
-                "hashed_password": user.get("password", ""),
-                "plain_password": user.get("plain_password", "No disponible"),
-                "_id": str(user["_id"])
+                "plain_password": user.get("plain_password", "No disponible")
             }
             result.append(user_data)
             

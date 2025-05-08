@@ -1,0 +1,35 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+<meta charset="utf-8">  
+<title>Mapa de Ubicación - Transporte USM</title>  
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">  
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
+<link href="style.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>  
+</head>  
+<body>  
+<div id="map"></div>
+<button class="toggle-button" onclick="toggleInfoPanel()">☰</button>
+
+<!-- Panel de información principal -->
+<div id="info-panel" class="info-panel">
+  <div id="profile-section" class="profile-section">
+    <!-- Contenido dinámico: información de perfil o botón de inicio de sesión -->
+  </div>
+  <div class="welcome-message" id="welcome-message">
+    Localización en tiempo real - Transporte USM
+  </div>
+  <hr>
+  <h4>Tu ubicación</h4>
+  <p id="location-info"></p>
+  <hr>
+  <h4>Buscar otro usuario</h4>
+  <input type="text" id="search-user-id" placeholder="Introduce la ID del usuario">
+  <button onclick="startRealTimeTracking()">Localizar en tiempo real</button>
+  <p id="search-result"></p>
+</div>
+
+<script src="map.js"></script>  
+</body>  
+</html> 
