@@ -61,8 +61,8 @@ function logoutUser() {
   localStorage.removeItem('user_id');
   localStorage.removeItem('username');
   
-  // Redirigir a login
-  window.location.href = 'login.html';
+  // Redirigir a página de bienvenida
+  window.location.href = 'index.html';
 }
 
 // Comprobar estado de sesión
@@ -77,7 +77,7 @@ function checkSession() {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user_id');
       localStorage.removeItem('username');
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     } else {
       // Activar geolocalización
       geolocateControl.trigger();
