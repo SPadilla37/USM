@@ -47,7 +47,7 @@ function loginUser() {
   .then(response => response.json())
   .then(data => {
     if (data.error) {
-      document.getElementById('login-error').textContent = data.error;
+      document.getElementById('login-error').textContent = 'Credenciales inválidas';
     } else {
       // Guardar el token en localStorage
       localStorage.setItem('authToken', data.token);
