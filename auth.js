@@ -35,7 +35,7 @@ function loginUser() {
   const password = document.getElementById('login-password').value;
   
   if (!username || !password) {
-    document.getElementById('login-error').textContent = 'Por favor, completa todos los campos';
+    document.getElementById('login-error').textContent = 'Credenciales inválidas';
     return;
   }
   
@@ -72,19 +72,19 @@ function registerUser() {
   const confirmPassword = document.getElementById('register-confirm-password').value;
   
   if (!username || !email || !password || !confirmPassword) {
-    document.getElementById('register-error').textContent = 'Por favor, completa todos los campos';
+    document.getElementById('register-error').textContent = 'Credenciales inválidas';
     return;
   }
   
   // Validar formato de correo electrónico
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    document.getElementById('register-error').textContent = 'Por favor, ingresa un correo electrónico válido';
+    document.getElementById('register-error').textContent = 'Credenciales inválidas';
     return;
   }
   
   if (password !== confirmPassword) {
-    document.getElementById('register-error').textContent = 'Las contraseñas no coinciden';
+    document.getElementById('register-error').textContent = 'Credenciales inválidas';
     return;
   }
   
