@@ -81,18 +81,21 @@
   <h2 style="margin-top: 0; margin-bottom: 10px; font-size: 28px;">¡Bienvenidos!</h2>
   <h1 class="welcome-title">Transporte USM</h1>
   <div class="welcome-buttons">
-    <a href="login.html" class="welcome-button">Iniciar Sesión</a>
-    <a href="registro.html" class="welcome-button">Registrarse</a>
+    <a href="login_mobile.html" class="welcome-button">Iniciar Sesión</a>
+    <a href="login_mobile.html" class="welcome-button">Registrarse</a>
   </div>
 </div>
 
 <script>
-  // Verificar si hay sesión activa
-  document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getItem('authToken')) {
-      window.location.href = 'mapa.html';
-    }
-  });
+  // Verificar si hay sesión activa - ESTA LÓGICA AHORA ESTÁ EN AUTH.JS Y ES MÁS COMPLETA
+  // document.addEventListener('DOMContentLoaded', function() {
+  //   if (localStorage.getItem('authToken')) {
+  //     window.location.href = 'mapa.html';
+  //   }
+  // });
 </script>
+<!-- Se asume que auth.js se carga en otras páginas o globalmente si es necesario aquí -->
+<!-- Si auth.js no se carga globalmente y se necesita su lógica de redirección aquí, -->
+<!-- se debería añadir <script src="auth.js" defer></script> -->
 </body>  
 </html>

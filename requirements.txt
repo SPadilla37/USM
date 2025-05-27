@@ -4,3 +4,5 @@ gunicorn
 werkzeug
 pymongo==4.6.1
 PyJWT==2.8.0
+Flask-Mail==0.9.1
+requests==2.25.1

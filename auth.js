@@ -1,13 +1,6 @@
 // URL base del servidor
 const API_BASE_URL = 'https://usm-839u.onrender.com';
 
-// Opciones para las solicitudes fetch
-const fetchOptions = {
-  headers: { 
-    'Content-Type': 'application/json'
-  }
-};
-
 // Función para obtener las opciones de fetch con el token de autorización
 function getAuthFetchOptions(method = 'GET', body = null) {
   const token = localStorage.getItem('authToken');
@@ -29,94 +22,24 @@ function getAuthFetchOptions(method = 'GET', body = null) {
   return options;
 }
 
-// Iniciar sesión
-function loginUser() {
-  const username = document.getElementById('login-username').value;
-  const password = document.getElementById('login-password').value;
-  
-  if (!username || !password) {
-    document.getElementById('login-error').textContent = 'Credenciales inválidas';
-    return;
-  }
-  
-  fetch(`${API_BASE_URL}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.error) {
-      document.getElementById('login-error').textContent = 'Credenciales inválidas';
-    } else {
-      // Guardar el token en localStorage
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user_id', data.user_id);
-      localStorage.setItem('username', data.username);
-      
-      // Redirigir al mapa
-      window.location.href = 'mapa.html';
-    }
-  })
-  .catch(error => {
-    document.getElementById('login-error').textContent = 'Error al conectar con el servidor';
-    console.error('Error:', error);
-  });
-}
-
-// Registrar usuario
-function registerUser() {
-  const username = document.getElementById('register-username').value;
-  const email = document.getElementById('register-email').value;
-  const password = document.getElementById('register-password').value;
-  const confirmPassword = document.getElementById('register-confirm-password').value;
-  
-  if (!username || !email || !password || !confirmPassword) {
-    document.getElementById('register-error').textContent = 'Credenciales inválidas';
-    return;
-  }
-  
-  // Validar formato de correo electrónico
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    document.getElementById('register-error').textContent = 'Credenciales inválidas';
-    return;
-  }
-  
-  if (password !== confirmPassword) {
-    document.getElementById('register-error').textContent = 'Credenciales inválidas';
-    return;
-  }
-  
-  fetch(`${API_BASE_URL}/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.error) {
-      document.getElementById('register-error').textContent = data.error;
-    } else {
-      // Guardar el token en localStorage
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user_id', data.user_id);
-      localStorage.setItem('username', data.username);
-      
-      // Redirigir al mapa
-      window.location.href = 'mapa.html';
-    }
-  })
-  .catch(error => {
-    document.getElementById('register-error').textContent = 'Error al conectar con el servidor';
-    console.error('Error:', error);
-  });
-}
-
 // Verificar si ya hay sesión al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
-  // Si ya hay un token, redirigir al mapa
-  if (localStorage.getItem('authToken')) {
-    window.location.href = 'mapa.html';
+  // Si ya hay un token y no estamos en una página que explícitamente no requiere redirección
+  // (ej. mapa.html ya es el destino, o las nuevas páginas de login/registro móvil)
+  const nonRedirectPages = [
+    '/mapa.html',
+    '/login_mobile.html',
+    '/login_password_mobile.html',
+    '/verificacion_usuario.html',
+    '/confirmacion_usuario.html',
+    '/registro_mobile.html'
+  ];
+  
+  if (localStorage.getItem('authToken') && !nonRedirectPages.some(page => window.location.pathname.endsWith(page))) {
+    // Solo redirigir si no estamos ya en una de las páginas del flujo de autenticación o en el mapa.
+    // Esto evita bucles de redirección si el token existe pero el usuario navega a login_mobile.html
+    if (window.location.pathname !== '/mapa.html') { // Evita recargar mapa.html si ya estamos ahí
+        window.location.href = 'mapa.html';
+    }
   }
-}); 
+});

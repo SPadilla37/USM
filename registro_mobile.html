@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Completar Registro</title>
+  <link rel="stylesheet" href="mobile_styles.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #fff;
+      padding-top: 80px; /* Espacio para el header fijo */
+      box-sizing: border-box;
+    }
+
+    .header {
+      background-color: #000;
+      color: #fff;
+      padding: 20px 40px;
+      width: 100%;
+      text-align: left;
+      font-size: 28px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    .register-container {
+      text-align: center;
+      width: 100%;
+      max-width: 450px; /* Un poco más ancho */
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .register-container h1 {
+      font-family: 'Roboto', sans-serif;
+      font-size: 24px;
+      margin-bottom: 25px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .form-row {
+      display: flex;
+      justify-content: space-between; /* Para elementos en la misma fila */
+      gap: 15px; 
+      margin-bottom: 15px;
+    }
+    
+    .form-row.single { /* Para campos que ocupan toda la fila */
+        justify-content: center;
+    }
+
+    .form-row input,
+    .form-row select {
+      flex: 1; /* Para que los inputs en la misma fila compartan espacio */
+      font-size: 16px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      box-sizing: border-box;
+    }
+    
+    .form-row.single input, .form-row.single select {
+        max-width: 100%; 
+    }
+    
+    .register-container button {
+      width: 100%;
+      padding: 15px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px; /* Espacio antes del botón */
+    }
+
+    .register-container button:hover {
+      background-color: #333;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-bottom: 10px;
+      min-height: 20px;
+      text-align: left;
+    }
+
+    .footer-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 20px;
+      line-height: 1.5;
+    }
+
+    /* Autocomplete styles (si se usa Photon API) */
+    .autocomplete-suggestions {
+      border: 1px solid #ccc;
+      background: #fff;
+      max-height: 150px;
+      overflow-y: auto;
+      position: absolute; /* Relativo al contenedor del input si es necesario */
+      z-index: 1001; /* Encima de otros elementos */
+      width: calc(100% - 40px); /* Ajustar al padding del contenedor */
+      box-sizing: border-box;
+    }
+
+    .autocomplete-suggestion {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .autocomplete-suggestion:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">USM</div>
+  <div class="register-container">
+    <h1>Completa tu Registro</h1>
+    <form id="register-form">
+      <div class="form-row single">
+        <input type="text" id="username" placeholder="Nombre de Usuario" required>
+      </div>
+      <div class="form-row">
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <input type="password" id="confirm-password" placeholder="Confirmar Contraseña" required>
+      </div>
+      <div class="form-row">
+        <select id="faculty" required>
+          <option value="" disabled selected>Facultad</option>
+          <option value="ingenieria-arquitectura">Ingeniería y Arquitectura</option>
+          <option value="ciencias-economicas-sociales">Ciencias Económicas y Sociales</option>
+          <option value="odontologia">Odontología</option>
+          <option value="farmacia">Farmacia</option>
+          <option value="derecho">Derecho</option>
+          <option value="otra">Otra</option>
+        </select>
+        <select id="career" required>
+          <option value="" disabled selected>Carrera</option>
+          <!-- Opciones se llenarán dinámicamente -->
+        </select>
+      </div>
+      <div class="form-row single" style="position: relative;">
+        <input type="text" id="address" placeholder="Dirección (Ej: Av. Principal, Urb. Santa Fe, Caracas)" autocomplete="off">
+        <div id="autocomplete-results" class="autocomplete-suggestions" style="display: none;"></div>
+      </div>
+      <p class="error-message" id="error-message-register">&nbsp;</p>
+      <button type="submit">Registrarse</button>
+    </form>
+    <p class="footer-text">
+      Al registrarte, aceptas nuestros términos y condiciones.
+    </p>
+  </div>
+  <script>
+    const API_BASE_URL = 'https://usm-839u.onrender.com'; // Updated to Render URL
+    const registerForm = document.getElementById('register-form');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    const facultySelect = document.getElementById('faculty');
+    const careerSelect = document.getElementById('career');
+    const addressInput = document.getElementById('address');
+    const autocompleteResults = document.getElementById('autocomplete-results');
+    const errorMessageRegister = document.getElementById('error-message-register');
+
+    const careersByFaculty = {
+      "ingenieria-arquitectura": ["Arquitectura", "Ing. Sistemas", "Ing. Industrial", "Ing. Civil", "Ing. Telecomunicaciones"],
+      "ciencias-economicas-sociales": ["Comunicación Social", "Economía", "Administración", "Contaduría Pública"],
+      "odontologia": ["Odontología"],
+      "farmacia": ["Farmacia"],
+      "derecho": ["Derecho", "Estudios Internacionales"],
+      "otra": ["Otra"]
+    };
+
+    facultySelect.addEventListener('change', function () {
+      const selectedFaculty = facultySelect.value;
+      const careers = careersByFaculty[selectedFaculty] || [];
+      careerSelect.innerHTML = '<option value="" disabled selected>Carrera</option>';
+      careers.forEach(career => {
+        const option = document.createElement('option');
+        option.value = career.toLowerCase().replace(/\s+/g, '-');
+        option.textContent = career;
+        careerSelect.appendChild(option);
+      });
+    });
+
+    // Photon API Autocomplete for address (opcional, requiere conexión a internet)
+    let debounceTimer;
+    addressInput.addEventListener('input', async () => {
+      const query = addressInput.value;
+      autocompleteResults.innerHTML = '';
+      autocompleteResults.style.display = 'none';
+
+      if (query.length < 3) return;
+
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        try {
+          // Coordenadas de Caracas como referencia, ajustar si es necesario
+          const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=10.4806&lon=-66.9036&limit=5`);
+          if (!response.ok) throw new Error('Network response was not ok for Photon API');
+          const data = await response.json();
+          
+          if (data.features && data.features.length > 0) {
+            autocompleteResults.style.display = 'block';
+            data.features.forEach((feature) => {
+              const suggestion = document.createElement('div');
+              suggestion.className = 'autocomplete-suggestion';
+              let text = feature.properties.name;
+              if (feature.properties.city && feature.properties.name !== feature.properties.city) text += `, ${feature.properties.city}`;
+              if (feature.properties.country && feature.properties.city !== feature.properties.country) text += `, ${feature.properties.country}`;
+              suggestion.textContent = text;
+              suggestion.addEventListener('click', () => {
+                addressInput.value = suggestion.textContent;
+                autocompleteResults.innerHTML = '';
+                autocompleteResults.style.display = 'none';
+              });
+              autocompleteResults.appendChild(suggestion);
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching address suggestions:', error);
+          // No mostrar error al usuario por esto, es una ayuda.
+        }
+      }, 300); // Debounce de 300ms
+    });
+    // Ocultar sugerencias si se hace clic fuera
+    document.addEventListener('click', function(event) {
+        if (!addressInput.contains(event.target) && !autocompleteResults.contains(event.target)) {
+            autocompleteResults.style.display = 'none';
+        }
+    });
+
+
+    registerForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      errorMessageRegister.textContent = '';
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      const confirmPassword = confirmPasswordInput.value.trim();
+      const faculty = facultySelect.value;
+      const career = careerSelect.value;
+      const address = addressInput.value.trim();
+
+      // Recuperar datos de localStorage
+      const email = localStorage.getItem('verificationEmail');
+      const firstName = localStorage.getItem('confirmedFirstName');
+      const lastName = localStorage.getItem('confirmedLastName');
+      const phone = localStorage.getItem('confirmedPhone');
+
+      if (!email || !firstName || !lastName || !phone) {
+        errorMessageRegister.textContent = 'Faltan datos de confirmación previos. Por favor, reinicia el proceso.';
+        // Opcionalmente, redirigir a login_mobile.html
+        // window.location.href = 'login_mobile.html';
+        return;
+      }
+
+      if (!username || !password || !confirmPassword) {
+        errorMessageRegister.textContent = 'Usuario y contraseña son obligatorios.';
+        return;
+      }
+      if (password !== confirmPassword) {
+        errorMessageRegister.textContent = 'Las contraseñas no coinciden.';
+        return;
+      }
+      if (password.length < 6) { // Ejemplo de validación de contraseña
+          errorMessageRegister.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+          return;
+      }
+      // Validaciones adicionales para faculty y career si son obligatorios
+      if (!faculty && facultySelect.options[facultySelect.selectedIndex].text !== "Otra") {
+          errorMessageRegister.textContent = 'Por favor, selecciona tu facultad.';
+          return;
+      }
+      if (!career && careerSelect.options[careerSelect.selectedIndex].text !== "Otra") {
+          errorMessageRegister.textContent = 'Por favor, selecciona tu carrera.';
+          return;
+      }
+
+
+      const registrationData = {
+        username,
+        password,
+        email,
+        phone,
+        firstName,
+        lastName,
+        faculty: faculty || 'No especificada', // Manejar si es opcional o "Otra"
+        career: career || 'No especificada',   // Manejar si es opcional o "Otra"
+        address: address || 'No especificada' // Manejar si es opcional
+      };
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(registrationData),
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Guardar token y datos del usuario, luego redirigir
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('user_id', data.user_id);
+          localStorage.setItem('username', data.username);
+          
+          // Limpiar datos temporales del proceso de registro
+          localStorage.removeItem('verificationEmail');
+          localStorage.removeItem('confirmedFirstName');
+          localStorage.removeItem('confirmedLastName');
+          localStorage.removeItem('confirmedPhone');
+
+          alert('¡Registro exitoso! Serás redirigido al mapa.');
+          window.location.href = 'mapa.html'; // Redirigir a la página del mapa
+        } else {
+          errorMessageRegister.textContent = data.error || 'Error en el registro. Inténtalo de nuevo.';
+        }
+      } catch (error) {
+        console.error('Error al registrar:', error);
+        errorMessageRegister.textContent = 'Error de conexión con el servidor.';
+      }
+    });
+  </script>
+</body>
+</html>
