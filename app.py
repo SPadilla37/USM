@@ -23,8 +23,8 @@ JWT_EXPIRATION = 30 * 24 * 60 * 60
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'tu_correo@gmail.com'  # Cambia esto por tu correo real
-app.config['MAIL_PASSWORD'] = 'tu_contraseña_o_app_password'  # Cambia esto por tu contraseña o App Password de Gmail
+app.config['MAIL_USERNAME'] = 'aglmarquez2005@gmail.com'  # Cambia esto por tu correo real
+app.config['MAIL_PASSWORD'] = 'knmxjtcfjtsrktdp'  # Cambia esto por tu contraseña o App Password de Gmail
 app.config['MAIL_DEFAULT_SENDER'] = 'tu_correo@gmail.com' # Cambia esto
 
 mail = Mail(app)
