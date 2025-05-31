@@ -7,16 +7,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainIframe = document.getElementById('main-iframe');
 
     // Toggle sidebar
-    menuBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-        
-        // Close all dropdowns when collapsing
-        if (sidebar.classList.contains('collapsed')) {
-            dropdownItems.forEach(item => {
-                item.classList.remove('open');
-            });
-        }
-    });
+    if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event from bubbling
+            sidebar.classList.toggle('collapsed');
+            
+            // Close all dropdowns when collapsing
+            if (sidebar.classList.contains('collapsed')) {
+                dropdownItems.forEach(item => {
+                    item.classList.remove('open');
+                });
+            }
+        });
+    }
 
     // Close sidebar on mobile when clicking outside
     document.addEventListener('click', (e) => {
@@ -37,19 +40,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle dropdown menus
     dropdownItems.forEach(item => {
         const link = item.querySelector('.menu-link');
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            // Close other dropdowns
-            dropdownItems.forEach(otherItem => {
-                if (otherItem !== item) {
-                    otherItem.classList.remove('open');
+        if (link) {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Don't toggle dropdown if sidebar is collapsed
+                if (sidebar.classList.contains('collapsed')) {
+                    return;
                 }
+                
+                // Close other dropdowns
+                dropdownItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('open');
+                    }
+                });
+                
+                // Toggle current dropdown
+                item.classList.toggle('open');
             });
-            
-            // Toggle current dropdown
-            item.classList.toggle('open');
-        });
+        }
     });
 
     // Handle page navigation
@@ -70,6 +81,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Handle logout
+    const logoutBtn = document.querySelector('.user-icon');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
 });
 
 // Función para manejar el cierre de sesión
