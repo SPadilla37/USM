@@ -1,12 +1,12 @@
 // filepath: c:\Users\sebas\OneDrive\Desktop\USM PROYECTO\sidebar\script_sidebar.js
 document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('sidebar');
-    const menuBtn = document.getElementById('menu-btn');
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.menu-btn');
     const dropdownItems = document.querySelectorAll('.menu-item-dropdown');
     const menuLinks = document.querySelectorAll('.menu-link, .sub-menu-link');
     const mainIframe = document.getElementById('main-iframe');
 
-    // Toggle sidebar collapse
+    // Toggle sidebar
     menuBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
         
@@ -15,6 +15,22 @@ document.addEventListener('DOMContentLoaded', function() {
             dropdownItems.forEach(item => {
                 item.classList.remove('open');
             });
+        }
+    });
+
+    // Close sidebar on mobile when clicking outside
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                sidebar.classList.add('collapsed');
+            }
+        }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('collapsed');
         }
     });
 

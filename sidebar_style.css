@@ -26,7 +26,7 @@ body {
 }
 
 /* sidebar */
-.sidebar{
+.sidebar {
     position: fixed;
     left: 0;
     top: 0;
@@ -38,8 +38,8 @@ body {
     width: 260px;
     height: 100vh;
     padding: 1.4rem 1rem 0 1rem;
-    background-color: var(--color-surface);
-    box-shadow: 1px 0px 10px var(--shadow-border);
+    background-color: #FFFFFF;
+    box-shadow: 1px 0px 10px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 .sidebar.collapsed {
@@ -54,7 +54,7 @@ body {
 /*menu-btn*/
 .menu-btn{
     position: absolute;
-    top: 3.5%;
+    top: 1.5rem;
     right: -0.87rem;
     display: flex;
     align-items: center;
@@ -64,9 +64,9 @@ body {
     border-radius: 50%;
     background-color: #fff;
     color: #757575;
-    box-shadow: 2px 2px 5px var(--shadow-border);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     cursor: pointer;
-    transition: transform 0.3s ease;
+    z-index: 1001;
 }
 .menu-btn i{
     font-size: 1.5rem;
@@ -88,12 +88,18 @@ body {
 }
 .brand img{
     width: 2rem;
+    min-width: 2rem;
 }
 .brand span{
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--color-text-primary);
+    white-space: nowrap;
+    opacity: 1;
     transition: opacity 0.3s ease;
+}
+.sidebar.collapsed .brand span {
+    opacity: 0;
+    width: 0;
 }
 /*menu*/
 .menu-container{
@@ -451,12 +457,16 @@ body {
 
 /* Ensure the map is not overlapped by the sidebar */
 #map {
-    margin-left: 260px; /* Same as sidebar width */
-    transition: margin-left 0.9s cubic-bezier(0.77, 0, 0.175, 1);
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 260px;
+    transition: left 0.3s ease;
 }
 
 .sidebar.collapsed ~ #map {
-    margin-left: 4.5rem; /* Same as collapsed sidebar width */
+    left: 4.5rem;
 }
 
 .sidebar.collapsed ~ .toggle-button {
@@ -491,20 +501,18 @@ body {
 /* Responsive styles */
 @media (max-width: 768px) {
     .sidebar {
-        width: 4.5rem;
-        padding: 1.4rem 0 0 0;
+        transform: translateX(0);
     }
     
     .sidebar.collapsed {
-        width: 0;
-        padding: 0;
+        transform: translateX(-100%);
     }
     
-    #main-content {
-        margin-left: 4.5rem;
+    #map {
+        left: 0;
     }
     
-    .sidebar.collapsed + #main-content {
-        margin-left: 0;
+    .sidebar.collapsed ~ #map {
+        left: 0;
     }
 }

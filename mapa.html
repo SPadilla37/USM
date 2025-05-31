@@ -7,7 +7,7 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
 <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 <link href="style.css" rel="stylesheet">
-<link rel="stylesheet" href="sidebar_style.css"> <!-- Added sidebar styles -->
+<link rel="stylesheet" href="sidebar_style.css">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>  
 </head>  
 <body>  
@@ -97,50 +97,8 @@
             </div>
         </div>
     </div>
-<div id="map"></div>
-<button class="toggle-button" onclick="toggleInfoPanel()">☰</button>
-
-<!-- Panel de información principal -->
-<div id="info-panel" class="info-panel">
-  <div id="profile-section" class="profile-section">
-    <!-- Contenido dinámico: información de perfil o botón de inicio de sesión -->
-  </div>
-  <div class="welcome-message" id="welcome-message">
-    Localización en tiempo real - Transporte USM
-  </div>
-  <hr>
-  <h4>Tu ubicación</h4>
-  <p id="location-info"></p>
-  <hr>
-  <h4>Buscar otro usuario</h4>
-  <input type="text" id="search-user-id" placeholder="Introduce la ID del usuario">
-  <button onclick="startRealTimeTracking()">Localizar en tiempo real</button>
-  <p id="search-result"></p>
-</div>
-
-<script>
-// Función para actualizar el nombre del usuario
-function updateUserName(userName) {
-    document.querySelector('.user-data .name').textContent = userName;
-}
-
-// Función para manejar el cierre de sesión
-function handleLogout() {
-    logoutUser(); // Llamar a la función existente de cerrar sesión
-}
-
-// Actualizar el nombre del usuario cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
-    // Aquí puedes obtener el nombre del usuario de tu sistema
-    const userName = document.querySelector('#usuario').textContent || 'Usuario';
-    updateUserName(userName);
-    
-    // Agregar el evento de click al botón de logout
-    document.querySelector('.user-icon').addEventListener('click', handleLogout);
-});
-</script>
-
-<script src="map.js"></script>  
-<script src="script_sidebar.js"></script> <!-- Added sidebar script -->
+    <div id="map"></div>
+    <script src="map.js"></script>  
+    <script src="script_sidebar.js"></script>
 </body>  
 </html>
