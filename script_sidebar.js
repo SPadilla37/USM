@@ -59,14 +59,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 const page = link.getAttribute('data-page');
                 if (page) {
-                    mainIframe.src = page;
-                    
                     // Remove active class from all links
                     menuLinks.forEach(l => l.classList.remove('active'));
                     // Add active class to clicked link
                     link.classList.add('active');
+                    
+                    // Navigate to the page
+                    window.location.href = page;
                 }
             }
         });
     });
 });
+
+// Función para manejar el cierre de sesión
+function handleLogout() {
+    // Eliminar datos de sesión
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('username');
+    
+    // Redirigir a la página de inicio de sesión
+    window.location.href = 'login.html';
+}

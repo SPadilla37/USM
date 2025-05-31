@@ -516,3 +516,26 @@ body {
         left: 0;
     }
 }
+
+/* Hide text when collapsed */
+.sidebar.collapsed .menu-link span,
+.sidebar.collapsed .brand span,
+.sidebar.collapsed .search input,
+.sidebar.collapsed .user-data {
+    display: none;
+}
+
+/* Adjust icons when collapsed */
+.sidebar.collapsed .menu-link {
+    justify-content: center;
+    padding: 0.7rem 0;
+}
+
+.sidebar.collapsed .menu-link i:not(.bx-chevron-down) {
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar.collapsed .menu-link i.bx-chevron-down {
+    display: none;
+}
