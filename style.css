@@ -9,13 +9,13 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
 .info-panel {
   position: absolute;
   top: 10px;
-  left: 10px;
+  left: 50px; /* Aumentado para dar espacio al botón de toggle */
   background: white;
-  padding: 10px;
-  border-radius: 4px;
+  padding: 15px;
+  border-radius: 8px;
   z-index: 1;
   max-width: 300px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   transition: transform 0.3s ease-in-out;
 }
 .info-panel.hidden {
@@ -32,6 +32,7 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   padding: 10px;
   cursor: pointer;
   z-index: 2;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 .toggle-button:hover {
   background: #2874a6;
@@ -41,13 +42,14 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   color: white;
 }
 .welcome-message {
-  background: #f1f1f1;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
   font-size: 14px;
   color: #333;
   text-align: center;
+  border: 1px solid #e9ecef;
 }
 .auth-container {
   position: absolute;
@@ -124,9 +126,18 @@ body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
 }
 .profile-section {
   display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
 }
 .profile-info {
   flex: 1;
+  line-height: 1.5;
+} 
+.profile-info strong {
+  color: #2c3e50;
+  margin-right: 5px;
 } 
