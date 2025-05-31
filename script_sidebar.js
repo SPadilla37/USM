@@ -53,13 +53,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    // Handle user logout
-    const logoutBtn = document.querySelector('.user-icon');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            // Add your logout logic here
-            window.location.href = 'login_mobile.html';
-        });
-    }
 });
