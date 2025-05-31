@@ -89,9 +89,9 @@
                     <img src="user_img.png" alt="user">
                 </div>
                 <div class="user-data">
-                    <span class="name">Angel</span>
+                    <span id="usuario">SSSS</span>
                 </div>
-                <div class="user-icon">
+                <div class="user-icon" onclick="handleLogout()" title="Cerrar sesión">
                     <i class='bx bx-log-out'></i>
                 </div>
             </div>
@@ -117,6 +117,30 @@
   <button onclick="startRealTimeTracking()">Localizar en tiempo real</button>
   <p id="search-result"></p>
 </div>
+
+<script>
+// Función para actualizar el nombre del usuario
+function updateUserName(userName) {
+    document.querySelector('.user-data .name').textContent = userName;
+}
+
+// Función para manejar el cierre de sesión
+function handleLogout() {
+    // Aquí puedes agregar la lógica de cierre de sesión
+    console.log('Cerrando sesión...');
+    // Redirigir a la página de login o realizar otras acciones necesarias
+}
+
+// Actualizar el nombre del usuario cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Aquí puedes obtener el nombre del usuario de tu sistema
+    const userName = document.querySelector('#usuario').textContent || 'Usuario';
+    updateUserName(userName);
+    
+    // Agregar el evento de click al botón de logout
+    document.querySelector('.user-icon').addEventListener('click', handleLogout);
+});
+</script>
 
 <script src="map.js"></script>  
 <script src="script_sidebar.js"></script> <!-- Added sidebar script -->
