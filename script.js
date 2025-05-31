@@ -233,7 +233,6 @@ function updateAuthUI() {
         <strong>Usuario:</strong> ${authState.username}<br>
         <strong>ID:</strong> ${authState.user_id}
       </div>
-      <button class="logout-button" onclick="logoutUser()">Cerrar sesión</button>
     `;
   } else {
     profileSection.innerHTML = `
