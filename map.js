@@ -32,6 +32,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // Comprobar validez del token
   checkSession();
 
+  // Activar geolocalización inmediatamente
+  setTimeout(() => {
+    try {
+      geolocateControl.trigger();
+    } catch (error) {
+      console.error('Error al activar la geolocalización:', error);
+    }
+  }, 1000);
+
   // Verificar el estado de los permisos de geolocalización
   if ("permissions" in navigator) {
     navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
@@ -147,13 +156,7 @@ geolocateControl.on('error', (e) => {
 // Activar geolocalización cuando el mapa esté listo
 map.on('load', () => {
   console.log('Mapa cargado, intentando activar geolocalización...');
-  setTimeout(() => {
-    try {
-      geolocateControl.trigger();
-    } catch (error) {
-      console.error('Error al activar la geolocalización:', error);
-    }
-  }, 1000);
+  geolocateControl.trigger(); // Intentar activar geolocalización cuando el mapa cargue
 });
 
 // Función para alternar la visibilidad del panel de información
