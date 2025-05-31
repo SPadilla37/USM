@@ -31,6 +31,16 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Comprobar validez del token
   checkSession();
+
+  // Verificar el estado de los permisos de geolocalización
+  if ("permissions" in navigator) {
+    navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
+      console.log('Estado de permisos de geolocalización:', result.state);
+      if (result.state === 'denied') {
+        alert('Por favor habilita los permisos de ubicación en tu navegador para usar esta función.');
+      }
+    });
+  }
 });
 
 // Función para obtener las opciones de fetch con el token de autorización
@@ -122,6 +132,30 @@ const geolocateControl = new mapboxgl.GeolocateControl({
 });
 
 map.addControl(geolocateControl);
+
+// Manejar errores de geolocalización
+geolocateControl.on('error', (e) => {
+  console.error('Error de geolocalización:', e.error);
+  if (e.error.code === 1) {
+    alert('Error: Permisos de ubicación denegados. Por favor habilita el acceso a tu ubicación en la configuración del navegador.');
+  } else if (e.error.code === 2) {
+    alert('Error: No se pudo determinar tu ubicación. Asegúrate de tener el GPS activado.');
+  } else if (e.error.code === 3) {
+    alert('Error: Tiempo de espera agotado al intentar obtener la ubicación.');
+  }
+});
+
+// Activar geolocalización cuando el mapa esté listo
+map.on('load', () => {
+  console.log('Mapa cargado, intentando activar geolocalización...');
+  setTimeout(() => {
+    try {
+      geolocateControl.trigger();
+    } catch (error) {
+      console.error('Error al activar la geolocalización:', error);
+    }
+  }, 1000);
+});
 
 // Función para alternar la visibilidad del panel de información
 function toggleInfoPanel() {
