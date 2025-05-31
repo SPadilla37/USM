@@ -91,13 +91,33 @@
                 <div class="user-data">
                     <span id="usuario">SSSS</span>
                 </div>
-                <div class="user-icon" onclick="handleLogout()" title="Cerrar sesión">
+                <div class="user-icon" id="logout-btn">
                     <i class='bx bx-log-out'></i>
                 </div>
             </div>
         </div>
     </div>
     <div id="map"></div>
+    <script>
+    // Función para manejar el cierre de sesión
+    function handleLogout() {
+        // Eliminar datos de sesión
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('username');
+        
+        // Redirigir a la página de inicio de sesión
+        window.location.href = 'login.html';
+    }
+
+    // Agregar el evento de click al botón de logout cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
+        }
+    });
+    </script>
     <script src="map.js"></script>  
     <script src="script_sidebar.js"></script>
 </body>  
