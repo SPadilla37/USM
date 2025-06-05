@@ -1,0 +1,95 @@
+<!-- filepath: c:\Users\sebas\OneDrive\Desktop\USM PROYECTO\sidebar\sidebar.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar</title>
+    <link rel="stylesheet" href="sidebar_style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="header">
+            <div class="menu-btn" id="menu-btn">
+                <i class='bx bxs-chevron-left'></i>
+            </div>
+            <div class="brand">
+                <img src="brand/brand-light.svg" alt="logo">
+                <span>USM</span>
+            </div>
+        </div>
+        <div class="menu-container">
+            <div class="search">
+                <i class='bx bx-search'></i>
+                <input type="search" placeholder="search">
+            </div>
+            <ul class="menu">
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link" data-page="mapa.html" id="mapa-link">
+                        <i class='bx bx-map'></i>
+                        <span>Map</span>
+                    </a>
+                </li>
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link" data-page="dashboard.html" id="dashboard-link">
+                        <i class='bx bx-bar-chart-alt-2'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item menu-item-dropdown">
+                    <a href="#" class="menu-link" data-page="car.html" id="car-link">
+                        <i class='bx bx-car'></i>
+                        <span>Car</span>
+                        <i class='bx bx-chevron-down'></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="#" class="sub-menu-link" data-page="shared-ride.html">shared ride</a></li>
+                    </ul>
+                </li>
+                <li class="menu-item menu-item-dropdown">
+                    <a href="#" class="menu-link" data-page="bus.html" id="bus-link">
+                        <i class='bx bx-bus'></i>
+                        <span>Bus</span>
+                        <i class='bx bx-chevron-down'></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="#" class="sub-menu-link" data-page="routes.html">routes</a></li>
+                    </ul>
+                </li>
+                <li class="menu-item menu-item-dropdown">
+                    <a href="#" class="menu-link" data-page="file.html" id="file-link">
+                        <i class='bx bx-file-blank'></i>
+                        <span>File</span>
+                        <i class='bx bx-chevron-down'></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="#" class="sub-menu-link" data-page="images.html">Images</a></li>
+                        <li><a href="#" class="sub-menu-link" data-page="audios.html">Audios</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="footer">
+            <ul class="menu">
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link" data-page="notifications.html" id="notification-link">
+                        <i class='bx bx-bell'></i>
+                        <span>Notification</span>
+                    </a>
+                </li>
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link" data-page="settings.html" id="setting-link">
+                        <i class='bx bx-cog'></i>
+                        <span>Setting</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="main-content">
+        <iframe src="mapa.html" style="width:100%;height:100vh;border:none;" id="main-iframe"></iframe>
+    </div>
+    <script src="script_sidebar.js"></script>
+</body>
+</html>

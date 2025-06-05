@@ -1,0 +1,124 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+<meta charset="utf-8">  
+<title>Mapa de Ubicación - Transporte USM</title>  
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">  
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<link href="style.css" rel="stylesheet">
+<link rel="stylesheet" href="sidebar_style.css">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>  
+</head>  
+<body>  
+    <div class="sidebar">
+        <div class="header">
+            <div class="menu-btn" id="menu-btn">
+                <i class='bx bxs-chevron-left'></i>
+            </div>
+            <div class="brand">
+                <img src="brand/brand-light.svg" alt="logo">
+                <span>USM</span>
+            </div>
+        </div>
+        <div class="menu-container">
+            <div class="search">
+                <i class='bx bx-search'></i>
+                <input type="search " placeholder="search">
+            </div>
+            <ul class="menu">
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link">
+                        <i class='bx bx-home-alt-2'></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link">
+                        <i class='bx bx-bar-chart-alt-2'></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item menu-item-dropdown">
+                    <a href="#" class="menu-link">
+                        <i class='bx bx-car'></i>
+                        <span>Car</span>
+                        <i class='bx bx-chevron-down'></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="#" class="sub-menu-link">routes</a></li>
+                        <li><a href="#" class="sub-menu-link">shared ride</a></li>
+                    </ul>
+                </li>
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link">
+                        <i class='bx bx-bus'></i>
+                        <span>Bus</span>
+                    </a>
+                </li>
+                <li class="menu-item menu-item-dropdown">
+                    <a href="#" class="menu-link">
+                        <i class='bx bx-file-blank'></i>
+                        <span>File</span>
+                        <i class='bx bx-chevron-down'></i>
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a href="#" class="sub-menu-link">Images</a></li>
+                        <li><a href="#" class="sub-menu-link">Audios</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="footer">
+            <ul class="menu">
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link">
+                        <i class='bx bx-bell'></i>
+                        <span>Notification</span>
+                    </a>
+                </li>
+                <li class="menu-item menu-item-static">
+                    <a href="#" class="menu-link">
+                        <i class='bx bx-cog'></i>
+                        <span>Setting</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="user">
+                <div class="user-img">
+                    <img src="user_img.png" alt="user">
+                </div>
+                <div class="user-data">
+                    <span id="usuario">SSSS</span>
+                </div>
+                <div class="user-icon" id="logout-btn">
+                    <i class='bx bx-log-out'></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="map"></div>
+    <script>
+    // Función para manejar el cierre de sesión
+    function handleLogout() {
+        // Eliminar datos de sesión
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('username');
+        
+        // Redirigir a la página de inicio de sesión
+        window.location.href = 'login_mobile.html';
+    }
+
+    // Agregar el evento de click al botón de logout cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
+        }
+    });
+    </script>
+    <script src="map.js"></script>  
+    <script src="script_sidebar.js"></script>
+</body>  
+</html>

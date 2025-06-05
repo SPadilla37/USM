@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación de Usuario</title>
+  <link rel="stylesheet" href="mobile_styles.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f9f9f9;
+    }
+
+    .header {
+      background-color: #000;
+      color: #fff;
+      padding: 20px 40px;
+      width: 100%;
+      text-align: left;
+      font-size: 28px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    .verification-container {
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 100px; /* Ajuste para el header */
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .verification-container h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .verification-container p {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .code-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .code-inputs input {
+      width: 45px; /* Ajustado */
+      height: 50px;
+      font-size: 24px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      outline: none;
+    }
+     .code-inputs input:focus {
+      border-color: #000;
+    }
+
+
+    .verification-container button {
+      width: 100%;
+      padding: 15px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .verification-container button:hover {
+      background-color: #333;
+    }
+    
+    #resend-button {
+        background-color: #f5f5f5;
+        color: #000;
+        margin-top: 10px;
+    }
+    #resend-button:hover {
+        background-color: #e0e0e0;
+    }
+    #resend-button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+      min-height: 20px; /* Para evitar saltos de layout */
+      display: block; /* Siempre visible, contenido cambia */
+    }
+  </style>
+</head>
+<body>
+  <div class="header">USM</div>
+  <div class="verification-container">
+    <h1>Verificación de Usuario</h1>
+    <p id="verification-info">Se envió un código de verificación a tu correo.</p>
+    <div class="code-inputs">
+      <input type="text" maxlength="1" class="code-input" pattern="[0-9]*" inputmode="numeric">
+      <input type="text" maxlength="1" class="code-input" pattern="[0-9]*" inputmode="numeric">
+      <input type="text" maxlength="1" class="code-input" pattern="[0-9]*" inputmode="numeric">
+      <input type="text" maxlength="1" class="code-input" pattern="[0-9]*" inputmode="numeric">
+      <input type="text" maxlength="1" class="code-input" pattern="[0-9]*" inputmode="numeric">
+      <input type="text" maxlength="1" class="code-input" pattern="[0-9]*" inputmode="numeric">
+    </div>
+    <p class="error-message" id="error-message">&nbsp;</p> <!-- Espacio reservado para mensajes -->
+    <button id="verify-button">Verificar</button>
+    <button id="resend-button">Reenviar código</button>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'https://usm-839u.onrender.com'; // Updated to Render URL
+    const verificationInfo = document.getElementById('verification-info');
+    const codeInputs = document.querySelectorAll('.code-input');
+    const verifyButton = document.getElementById('verify-button');
+    const resendButton = document.getElementById('resend-button');
+    const errorMessage = document.getElementById('error-message');
+    
+    const emailForVerification = localStorage.getItem('verificationEmail');
+
+    if (emailForVerification) {
+      verificationInfo.textContent = `Se envió un código de verificación a: ${emailForVerification}`;
+    } else {
+      verificationInfo.textContent = 'Error: No se encontró el correo para verificación. Por favor, vuelve a intentarlo.';
+      verifyButton.disabled = true;
+      resendButton.disabled = true;
+    }
+
+    codeInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        // Solo permitir números
+        input.value = input.value.replace(/[^0-9]/g, '');
+        if (input.value.length === 1 && index < codeInputs.length - 1) {
+          codeInputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Backspace' && input.value === '' && index > 0) {
+          codeInputs[index - 1].focus();
+        }
+      });
+       input.addEventListener('paste', (event) => {
+        event.preventDefault();
+        const pasteData = event.clipboardData.getData('text').replace(/[^0-9]/g, '');
+        if (pasteData.length === 6) {
+          pasteData.split('').forEach((char, idx) => {
+            if (codeInputs[idx]) {
+              codeInputs[idx].value = char;
+            }
+          });
+          codeInputs[5].focus(); // Focus on the last input
+        }
+      });
+    });
+
+    async function handleVerification() {
+      const code = Array.from(codeInputs).map(input => input.value).join('');
+      errorMessage.textContent = ''; // Limpiar mensaje previo
+      codeInputs.forEach(input => input.style.borderColor = '#ccc');
+
+
+      if (code.length !== 6) {
+        errorMessage.textContent = 'Por favor, introduce un código de 6 dígitos.';
+        codeInputs.forEach(input => input.style.borderColor = 'red');
+        return;
+      }
+
+      if (!emailForVerification) {
+        errorMessage.textContent = 'Error: Email no disponible para verificación.';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/verify-code`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailForVerification, code: code }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          codeInputs.forEach(input => input.style.borderColor = 'green');
+          errorMessage.textContent = '¡Código verificado con éxito!';
+          errorMessage.style.color = 'green';
+          // El email ya está en localStorage ('verificationEmail')
+          // Redirigir a la página de confirmación de datos del usuario
+          setTimeout(() => {
+            window.location.href = 'confirmacion_usuario.html';
+          }, 1000);
+        } else {
+          errorMessage.textContent = data.error || 'Código incorrecto o expirado.';
+          errorMessage.style.color = 'red';
+          codeInputs.forEach(input => input.style.borderColor = 'red');
+        }
+      } catch (error) {
+        console.error('Error al verificar el código:', error);
+        errorMessage.textContent = 'Error de conexión con el servidor.';
+        errorMessage.style.color = 'red';
+      }
+    }
+
+    verifyButton.addEventListener('click', handleVerification);
+    
+    // Permitir enviar con Enter si el último campo tiene foco y se presiona Enter
+    codeInputs[5].addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            handleVerification();
+        }
+    });
+
+
+    let resendCooldown = 30;
+    function updateResendButton() {
+      if (resendCooldown > 0) {
+        resendButton.textContent = `Reenviar en ${resendCooldown}s`;
+        resendButton.disabled = true;
+      } else {
+        resendButton.textContent = 'Reenviar código';
+        resendButton.disabled = false;
+      }
+    }
+
+    async function handleResendCode() {
+      if (resendCooldown > 0 || !emailForVerification) return;
+      
+      errorMessage.textContent = '';
+      resendCooldown = 30;
+      updateResendButton();
+      
+      const countdownInterval = setInterval(() => {
+        resendCooldown--;
+        updateResendButton();
+        if (resendCooldown <= 0) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/send-code`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailForVerification }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          errorMessage.textContent = 'Nuevo código enviado.';
+          errorMessage.style.color = 'green';
+        } else {
+          errorMessage.textContent = data.error || 'Error al reenviar el código.';
+          errorMessage.style.color = 'red';
+          resendCooldown = 0; // Permitir reintentar inmediatamente si falla el envío
+          updateResendButton();
+          clearInterval(countdownInterval);
+        }
+      } catch (error) {
+        console.error('Error al reenviar código:', error);
+        errorMessage.textContent = 'Error de conexión al reenviar.';
+        errorMessage.style.color = 'red';
+        resendCooldown = 0;
+        updateResendButton();
+        clearInterval(countdownInterval);
+      }
+    }
+    resendButton.addEventListener('click', handleResendCode);
+    updateResendButton(); // Initial state for resend button if page is reloaded quickly
+  </script>
+</body>
+</html>

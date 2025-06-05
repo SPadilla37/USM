@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmar Información</title>
+  <link rel="stylesheet" href="mobile_styles.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #fff;
+      padding-top: 80px; /* Espacio para el header fijo */
+      box-sizing: border-box;
+    }
+
+    .header {
+      background-color: #000;
+      color: #fff;
+      padding: 20px 40px;
+      width: 100%;
+      text-align: left;
+      font-size: 28px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    .confirm-container {
+      text-align: center;
+      width: 100%;
+      max-width: 450px; /* Un poco más ancho */
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .confirm-container h1 {
+      font-size: 24px;
+      margin-bottom: 25px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .form-row.single { /* Para campos que ocupan toda la fila */
+        justify-content: center;
+    }
+
+    .form-row input,
+    .form-row select {
+      flex: 1; /* Para que los inputs en la misma fila compartan espacio */
+      padding: 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      box-sizing: border-box;
+    }
+    
+    .form-row.single input {
+        max-width: 100%; /* Asegurar que no se desborde */
+    }
+
+
+    .phone-input-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .phone-input-container select {
+      width: auto; /* Ajustar al contenido */
+      padding: 15px 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+
+    .phone-input-container input {
+      flex: 1;
+      padding: 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+    
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-bottom: 15px;
+      min-height: 20px;
+      text-align: left;
+    }
+
+    .buttons-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+      gap: 15px;
+    }
+
+    .buttons-container button {
+      flex: 1;
+      padding: 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .back-button {
+      background-color: #f5f5f5;
+      color: #000;
+    }
+
+    .back-button:hover {
+      background-color: #e0e0e0;
+    }
+
+    .next-button {
+      background-color: #000;
+      color: #fff;
+    }
+
+    .next-button:hover {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">USM</div>
+  <div class="confirm-container">
+    <h1>Confirma tus Datos</h1>
+    <form id="confirm-form">
+      <div class="form-row">
+        <input type="text" id="first-name" name="first-name" placeholder="Nombre" required>
+        <input type="text" id="last-name" name="last-name" placeholder="Apellido" required>
+      </div>
+      <div class="form-row single">
+        <input type="tel" id="phone-number" name="phone-number" placeholder="Número de Teléfono (ej: 04121234567)" required pattern="[0-9]{10,11}">
+      </div>
+       <p class="error-message" id="error-message-confirm">&nbsp;</p>
+      <div class="buttons-container">
+        <button type="button" class="back-button" id="back-button">← Atrás</button>
+        <button type="submit" class="next-button" id="next-button">Siguiente →</button>
+      </div>
+    </form>
+  </div>
+  <script>
+    const API_BASE_URL = 'https://usm-839u.onrender.com'; // Updated to Render URL
+    const confirmForm = document.getElementById('confirm-form');
+    const firstNameInput = document.getElementById('first-name');
+    const lastNameInput = document.getElementById('last-name');
+    const phoneInput = document.getElementById('phone-number');
+    const backButton = document.getElementById('back-button');
+    const errorMessageConfirm = document.getElementById('error-message-confirm');
+
+
+    const verifiedEmail = localStorage.getItem('verificationEmail');
+
+    if (!verifiedEmail) {
+      alert('Error: Email verificado no encontrado. Serás redirigido.');
+      window.location.href = 'login_mobile.html';
+    }
+
+    confirmForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      errorMessageConfirm.textContent = '';
+
+      const firstName = firstNameInput.value.trim();
+      const lastName = lastNameInput.value.trim();
+      const phone = phoneInput.value.trim();
+
+      if (!firstName || !lastName || !phone) {
+        errorMessageConfirm.textContent = 'Todos los campos son obligatorios.';
+        return;
+      }
+      
+      if (!/^[0-9]{10,11}$/.test(phone)) {
+        errorMessageConfirm.textContent = 'Número de teléfono inválido. Debe tener 10 u 11 dígitos.';
+        return;
+      }
+
+      // Guardar los datos en localStorage para pasarlos a la página de registro final
+      localStorage.setItem('confirmedFirstName', firstName);
+      localStorage.setItem('confirmedLastName', lastName);
+      localStorage.setItem('confirmedPhone', phone);
+      // 'verificationEmail' ya está en localStorage
+
+      window.location.href = 'registro_mobile.html';
+    });
+
+    backButton.addEventListener('click', function () {
+      // Idealmente, debería volver a la página de verificación de código,
+      // pero el código ya fue usado. Podría volver al login.
+      window.location.href = 'verificacion_usuario.html'; 
+    });
+  </script>
+</body>
+</html>

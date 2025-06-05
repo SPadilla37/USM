@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USM - Transporte Seguro</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #fff;
+      color: #111;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: #000;
+      color: #fff;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .navbar .logo {
+      font-weight: bold;
+      font-size: 2em;
+      letter-spacing: 1px;
+    }
+    .navbar nav a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 18px;
+      font-size: 1.2em;
+      font-weight: 600;
+    }
+    .navbar .actions {
+      display: flex;
+      align-items: center;
+    }
+    .navbar .actions span,
+    .navbar .actions a {
+      color: #fff;
+      margin-left: 18px;
+      font-size: 1.1em;
+      text-decoration: none;
+    }
+    .navbar .actions button {
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 22px;
+      padding: 8px 24px;
+      margin-left: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.1em;
+    }
+    .hero {
+      background: #f6f6f6;
+      padding: 70px 0 0 0;
+      min-height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 92%;
+      max-width: 1300px;
+    }
+    .hero-text {
+      font-size: 3.2em;
+      font-weight: 700;
+      max-width: 500px;
+      line-height: 1.1;
+    }
+    .hero-img {
+      width: 600px;
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .options {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      background: #fff;
+      padding: 56px 0 56px 0;
+    }
+    .option {
+      text-align: left;
+      font-size: 2em;
+      font-weight: 700;
+      cursor: pointer;
+      flex: 1;
+      max-width: 440px;
+      border-bottom: 2.5px solid #111;
+      margin: 0 18px;
+      padding-bottom: 28px;
+      transition: border-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .option:hover {
+      border-color: #333;
+    }
+    .option-arrow {
+      display: inline-block;
+      width: 48px;
+      height: 48px;
+      overflow: hidden;
+      position: relative;
+    }
+    .option-arrow svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transition: none;
+    }
+    .option-arrow:hover svg {
+      animation: arrow-loop 0.6s cubic-bezier(.4,1.5,.6,1) 1;
+    }
+    @keyframes arrow-loop {
+      0% {
+        left: 0;
+        opacity: 1;
+      }
+      50% {
+        left: 60px;
+        opacity: 0;
+      }
+      51% {
+        left: -60px;
+        opacity: 0;
+      }
+      100% {
+        left: 0;
+        opacity: 1;
+      }
+    }
+    .footer {
+      background: #111;
+      color: #fff;
+      padding: 160px 0 80px 0;
+      font-size: 1.1em;
+      min-height: 500px;
+    }
+    .footer-content {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .footer-section {
+      margin: 18px 0;
+      min-width: 200px;
+    }
+    .footer-section h4 {
+      margin-bottom: 12px;
+      font-weight: 700;
+      font-size: 1.1em;
+    }
+    .footer-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .footer-section ul li {
+      margin-bottom: 7px;
+    }
+    .footer-section ul li a {
+      color: #fff;
+      text-decoration: none;
+    }
+    .footer-bottom {
+      text-align: center;
+      margin-top: 60px;
+      color: #aaa;
+      font-size: 1em;
+    }
+    .footer-icons {
+      margin-top: 20px;
+    }
+    .footer-icons img {
+      width: 150px;
+      margin-right: 12px;
+    }
+    .footer-social {
+      margin-top: 28px;
+    }
+    .footer-social a {
+      color: #fff;
+      margin-right: 24px;
+      font-size: 1.7em;
+      text-decoration: none;
+    }
+    @media (max-width: 900px) {
+      .hero-content {
+        flex-direction: column;
+        gap: 0;
+      }
+      .hero-img {
+        margin-top: 32px;
+        width: 90vw;
+        height: 180px;
+      }
+      .options {
+        flex-direction: column;
+        gap: 24px;
+        align-items: center;
+      }
+      .option {
+        max-width: 90vw;
+      }
+      .footer-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 24px;
+      }
+      .footer {
+        padding: 100px 0 100px 0;
+        min-height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo">USM</div>
+    <nav>
+      <a href="#">Viaja</a>
+      <a href="#">Reservar</a>
+      <a href="#">Quiénes somos</a>
+    </nav>
+    <div class="actions">
+      <span>⨁ ES</span>
+      <a href="#">Ayuda</a>
+      <a href="login_mobile.html"><button>Iniciar sesión</button></a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-text">
+        Viaja con seguridad y comodidad en USM
+      </div>
+      <div class="hero-img">
+        <img src="https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,w_956,h_537/v1653688465/assets/29/74ec2f-a727-47e1-9695-c78f8dadffe5/original/UberX-Share-Icon.png" alt="Uber car illustration">
+      </div>
+    </div>
+  </div>
+
+  <div class="options">
+    <div class="option">
+      Viaja con USM
+      <div class="option-arrow">
+        <svg viewBox="0 0 24 24">
+          <path fill="currentColor" d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="option">
+      Conduce con USM
+      <div class="option-arrow">
+        <svg viewBox="0 0 24 24">
+          <path fill="currentColor" d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#">Acerca de</a></li>
+          <li><a href="#">Newsroom</a></li>
+          <li><a href="#">Inversionistas</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Carreras</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Productos</h4>
+        <ul>
+          <li><a href="#">Viaja</a></li>
+          <li><a href="#">Conduce</a></li>
+          <li><a href="#">Entrega</a></li>
+          <li><a href="#">Restaurantes</a></li>
+          <li><a href="#">USM for Business</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Ciudades Globales</h4>
+        <ul>
+          <li><a href="#">Santiago</a></li>
+          <li><a href="#">Valparaíso</a></li>
+          <li><a href="#">Concepción</a></li>
+          <li><a href="#">La Serena</a></li>
+          <li><a href="#">Antofagasta</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Ayuda</h4>
+        <ul>
+          <li><a href="#">Centro de ayuda</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">Seguridad</a></li>
+          <li><a href="#">COVID-19</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-icons">
+        <img src="https://d3i4yxtzktqr9n.cloudfront.net/web-eats-v2/d0558535484b0877.svg" alt="App Store">
+        <img src="https://d3i4yxtzktqr9n.cloudfront.net/web-eats-v2/cf6dad406504177c.png" alt="Google Play">
+      </div>
+      <div class="footer-social">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+      </div>
+      <p>© 2024 USM Technologies Inc.</p>
+    </div>
+  </div>
+</body>
+</html>

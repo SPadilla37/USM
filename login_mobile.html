@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión o Registrarse</title>
+  <link rel="stylesheet" href="mobile_styles.css"> <!-- Usando los nuevos estilos -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #fff;
+    }
+
+    .header {
+      background-color: #000;
+      color: #fff;
+      padding: 20px 40px;
+      width: 100%;
+      text-align: left;
+      font-size: 28px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    .login-container {
+      text-align: center;
+      width: 100%;
+      max-width: 350px;
+      margin-top: 100px; /* Ajustado para el header fijo */
+    }
+
+    .login-container h1 {
+      font-family: 'Roboto', sans-serif;
+      font-size: 20px; /* Ajustado */
+      margin-bottom: 20px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .email-input {
+      display: block;
+      width: 90%; /* Ajustar para centrar mejor */
+      padding: 15px;
+      margin: 10px auto; /* Centrar */
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: #f9f9f9;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .login-container button {
+      width: calc(90% + 30px); /* Para igualar el ancho del input */
+      padding: 15px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px auto; /* Centrar */
+      display: block;
+    }
+
+    .login-container button:hover {
+      background-color: #333;
+    }
+    
+    .loading-bar {
+      display: none;
+      margin-top: 20px;
+      width: calc(90% + 30px);
+      height: 5px;
+      background-color: #ccc;
+      position: relative;
+      overflow: hidden;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .loading-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 100%;
+      background-color: #000;
+      animation: loading 2s infinite;
+    }
+
+    @keyframes loading {
+      0% { width: 0; }
+      50% { width: 100%; }
+      100% { width: 0; }
+    }
+     .footer-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 20px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">USM</div>
+  <div class="login-container">
+    <h1>Introduce tu correo electrónico para continuar</h1>
+    <form id="login-form">
+      <input type="email" id="email-input" class="email-input" name="email" placeholder="correo@ejemplo.com" required>
+      <p class="error-message" id="error-message">Por favor introduce un correo válido.</p>
+      <button type="submit">Continuar</button>
+    </form>
+    <div class="loading-bar" id="loading-bar"></div>
+     <p class="footer-text">
+      Al continuar, aceptas recibir correos de verificación como parte del proceso de registro/login.
+    </p>
+  </div>
+
+  <script>
+    const emailInput = document.getElementById('email-input');
+    const errorMessage = document.getElementById('error-message');
+    const loadingBar = document.getElementById('loading-bar');
+    const loginForm = document.getElementById('login-form');
+    const API_BASE_URL = 'https://usm-839u.onrender.com'; // Updated to Render URL
+
+    loginForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      errorMessage.style.display = 'none';
+      const emailValue = emailInput.value.trim();
+
+      if (!emailValue || !/\S+@\S+\.\S+/.test(emailValue)) {
+        errorMessage.textContent = 'Por favor, introduce un correo electrónico válido.';
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      loadingBar.style.display = 'block';
+
+      try {
+        const response = await fetch(API_BASE_URL + '/send-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: emailValue }),
+        });
+
+        const data = await response.json();
+        loadingBar.style.display = 'none';
+
+        if (response.ok) {
+          localStorage.setItem('verificationEmail', emailValue); // Used by verification_usuario and confirmacion_usuario
+          localStorage.setItem('loginEmail', emailValue); // Used by login_password_mobile
+          
+          if (data.user_exists) {
+            // User exists, redirect to password entry page
+            window.location.href = 'login_password_mobile.html';
+          } else {
+            // New user, redirect to code verification page for registration
+            window.location.href = 'verificacion_usuario.html';
+          }
+        } else {
+          errorMessage.textContent = data.error || 'Error al enviar el código. Inténtalo de nuevo.';
+          errorMessage.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error al enviar el código:', error);
+        errorMessage.textContent = 'Error de conexión con el servidor. Inténtalo más tarde.';
+        errorMessage.style.display = 'block';
+      } finally {
+        loadingBar.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
